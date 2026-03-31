@@ -346,7 +346,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
   </div>
 
-  <div class="field" id="led-status-field">
+  <div class="field" id="led-status-field" style="display:none">
     <label>LED対応状況</label>
     <div class="tgroup">
       <button class="tbtn" id="c-led"  onclick="setLedSt('led')">既にLED器具</button>
@@ -393,12 +393,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
   </div>
 
-  <div class="field" id="fname-field">
+  <div class="field" id="fname-field" style="display:none">
     <label>照明名称<span class="req">*</span></label>
     <input type="text" id="fname" placeholder="例：壁面ブラケット(A)、防犯灯">
   </div>
 
-  <div id="normal-fields">
+  <div id="normal-fields" style="display:none">
     <div class="field" id="normal-dim-field">
       <label>器具寸法</label>
       <select id="shape" onchange="onShape()">
