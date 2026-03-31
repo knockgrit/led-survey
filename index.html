@@ -359,6 +359,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field">
       <label>型番</label>
       <input type="text" id="led-model" placeholder="例：LGW80190LE1">
+      <div style="font-size:11px;color:#e53e3e;margin-top:3px;padding-left:4px">※型番がない場合は見た目が判断できる名称を入力</div>
     </div>
     <div class="field">
       <label>タイプ</label>
@@ -370,27 +371,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <!-- 一体形の場合 -->
     <div id="led-ittai-fields">
       <div class="r2">
-        <div class="field"><label>消費電力</label><div class="uw"><input type="number" id="led-watt" placeholder="例：16.5"><span class="unit">W</span></div></div>
-        <div class="field"><label>色温度</label>
-          <select id="led-ct">
-            <option value="">選択</option><option>昼白色(5000K)</option><option>白色(4000K)</option>
-            <option>昼光色(6500K)</option><option>電球色(3000K)</option><option>不明</option>
-          </select>
-        </div>
+        <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-watt" placeholder="例：16.5"><span class="unit">W</span></div></div>
+        <div class="field"><label>製造年数</label><input type="text" id="led-year" placeholder="例：2018年製"></div>
       </div>
-      <div class="field"><label>製造年数</label><input type="text" id="led-year" placeholder="例：2018年製"></div>
     </div>
     <!-- ランプ交換可能型の場合 -->
     <div id="led-lamp-fields" style="display:none">
-      <div class="r2">
-        <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-lwatt" placeholder="例：10"><span class="unit">W</span></div></div>
-        <div class="field"><label>ランプ色温度</label>
-          <select id="led-lct">
-            <option value="">選択</option><option>昼白色(5000K)</option><option>白色(4000K)</option>
-            <option>昼光色(6500K)</option><option>電球色(3000K)</option><option>不明</option>
-          </select>
-        </div>
-      </div>
+      <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-lwatt" placeholder="例：10"><span class="unit">W</span></div></div>
     </div>
   </div>
 
@@ -472,8 +459,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       </div>
     </div>
 
-    <div class="field"><label>ランプ種別</label><input type="text" id="lamp" placeholder="例：FPL13、FL20"></div>
-    <div class="field">
+    <div class="field" id="normal-lamp-field"><label>ランプ種別</label><input type="text" id="lamp" placeholder="例：FPL13、FL20"></div>
+    <div class="field" id="normal-watt-field">
       <label>消費電力</label>
       <div class="uw" style="max-width:200px"><input type="number" id="watt" placeholder="例：16.5"><span class="unit">W</span></div>
       <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※器具側型番記載の消費電力。ランプが異なる場合はランプ記載の消費電力を入力</div>
@@ -579,11 +566,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 </div>
 <div class="bottom-bar">
   <div class="bb-inner">
-    <button class="btn btn-full" id="send-btn" onclick="doEmailSend()" disabled style="font-size:15px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:bold;cursor:pointer;margin-bottom:8px">📧 メールで送信</button>
+    <button class="btn btn-full" id="send-btn" onclick="doEmailSend()" disabled style="font-size:15px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:bold;cursor:pointer;margin-bottom:8px">📤 情報をアップロード</button>
     
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- コピーモーダル -->
+<div id="copy-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:12px;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:640px;max-height:75vh;overflow:auto;margin:0 auto">
+    <div style="font-size:14px;font-weight:700;color:#2b6cb0;margin-bottom:6px">📋 調査内容</div>
+    <div style="font-size:12px;color:#e53e3e;font-weight:700;margin-bottom:10px">この情報をコピーしてお手元で保管ください</div>
+    <textarea id="copy-modal-txt" readonly style="width:100%;height:220px;font-size:12px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;resize:none;background:#f7fafc;font-family:monospace"></textarea>
+    <button onclick="document.getElementById('copy-modal').style.display='none'" style="margin-top:12px;width:100%;padding:13px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">閉じる</button>
+  </div>
+</div>
 
 <script>
 const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ抜き','ランプ切れ','建物側人感センサー','器具付人感センサー','自動点滅器付き器具'];
@@ -650,6 +647,7 @@ function setFixType(v){
   // eonly/guideに切替時に lled が選択されていたらリセット
   if((isEonly||isGuide)&&ledSt==='lled'){ledSt='';const clledR=document.getElementById('c-lled');if(clledR)clledR.classList.remove('act-in');}
   updateEmgForEonly();
+  updateNormalLedFields();
   renderFF();
 }
 function setGuideLed(){
@@ -757,6 +755,7 @@ function setLedSt(v){
   document.getElementById('led-detail').style.display=(ledSt==='led'&&!_isEonly&&!_isGuide)?'block':'none';
   document.getElementById('lled-detail').style.display=(ledSt==='lled'&&!_isEonly&&!_isGuide)?'block':'none';
   updateEmgForEonly();
+  updateNormalLedFields();
 }
 function updateEmgForEonly(){
   const isEonly=fixTypeSt==='eonly';
@@ -766,6 +765,17 @@ function updateEmgForEonly(){
   const wtf=document.getElementById('emg-water-field');
   if(wf)wf.style.display=(isEonly&&isLed)?'none':'';
   if(wtf)wtf.style.display=(isEonly&&isLed)?'none':'';
+}
+function updateNormalLedFields(){
+  const isEonly=fixTypeSt==='eonly';
+  const isGuide=fixTypeSt==='guide';
+  const isLed=ledSt==='led';
+  // 照明名称：eonly/guide/LED器具選択時は非表示
+  const ff=document.getElementById('fname-field');
+  if(ff)ff.style.display=(isEonly||isGuide||isLed)?'none':'block';
+  // ランプ種別・消費電力：LED器具選択時は非表示（normal/ecomb時のみ関係）
+  const lf=document.getElementById('normal-lamp-field');if(lf)lf.style.display=isLed?'none':'';
+  const wf2=document.getElementById('normal-watt-field');if(wf2)wf2.style.display=isLed?'none':'';
 }
 function setLedType(v){
   ledTypeSt=v;
@@ -1156,7 +1166,7 @@ function regEntry(){
   const secSub=gv('sec')!=='その他'?gv('sec-sub'):'';
   const fullSection=secSub?sec+'　'+secSub:sec;
   if(!sec){toast('設置場所を選択してください','err');return;}
-  if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){toast('照明名称を入力してください','err');return;}
+  if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');return;}
   if(!fFloors.length){toast('フロア情報を追加してください','err');return;}
   const isEonly=fixTypeSt==='eonly';
   for(const f of fFloors){
@@ -1349,8 +1359,11 @@ function refreshLib(){
   sec.style.display='block';
   grid.innerHTML=library.map((f,i)=>{
     const sub=[f.dim,f.lamp,f.watt?f.watt+'W':''].filter(Boolean).join(' ');
+    const isEmg=f.fixType==='ecomb'||f.fixType==='eonly';
+    const isGuide=f.fixType==='guide';
+    const badge=isEmg?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#3182ce;color:#fff;font-size:10px;font-weight:700;margin-right:4px;flex-shrink:0">非</span>':isGuide?'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#3182ce;color:#fff;font-size:10px;font-weight:700;margin-right:4px;flex-shrink:0">誘</span>':'';
     return`<div class="lib-item" id="lib-${i}" onclick="useLib(${i})">
-      <div class="ln">${getDisplayName(f)||'（名称なし）'}</div>
+      <div class="ln" style="display:flex;align-items:center">${badge}${getDisplayName(f)||'（名称なし）'}</div>
       ${sub?`<div class="ls">${sub}</div>`:''}
     </div>`;
   }).join('');
@@ -1435,6 +1448,8 @@ function getDisplayName(fix){
     const kn=knMap[fix.guide?.kind||'']||'';
     return gr+kn+'誘導灯';
   }
+  // LED器具（既にLED）の場合は型番を名前として表示
+  if(fix.led&&fix.ledModel)return fix.ledModel;
   return fix.name||'';
 }
 function renderEntries(){
@@ -1454,7 +1469,7 @@ function renderEntries(){
       <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
         <div class="ec-left">
           <span class="ec-no">No.${e.id}</span><span class="ec-sec">${e.section}</span>
-          <div class="ec-name">${getDisplayName(f)}</div>
+          <div class="ec-name" style="display:flex;align-items:center;gap:4px">${(f.fixType==='ecomb'||f.fixType==='eonly')?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">非</span>':f.fixType==='guide'?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">誘</span>':''}${getDisplayName(f)}</div>
           ${spec?`<div class="ec-spec">${spec}</div>`:''}
           ${tags.length?`<div style="margin-top:4px">${tags.join('')}</div>`:''}
         </div>
@@ -1603,7 +1618,7 @@ function convMode(mode,timer){
 // ── メール送信（Web3Forms） ──
 async function doEmailSend(){
   if(!entries.length)return;
-  if(!confirm('調査データを office@knock-grit.co.jp に送信しますか？'))return;
+  if(!confirm('調査データをKNOCK GRITへ送信しますか？'))return;
   const bldg=gv('bldg')||'（未入力）';
   const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
   const hn=gv('hn');
@@ -1683,13 +1698,9 @@ async function doEmailSend(){
     if(data.success){
       toast('office@knock-grit.co.jp に送信しました！','ok');
       setTimeout(()=>{
-        if(confirm('調査内容をコピーしますか？\n（手元に保管したい場合は「OK」）')){
-          navigator.clipboard.writeText(txt).then(()=>{
-            toast('クリップボードにコピーしました！','ok');
-          }).catch(()=>{
-            toast('コピーに失敗しました','err');
-          });
-        }
+        const modal=document.getElementById('copy-modal');
+        const ta=document.getElementById('copy-modal-txt');
+        if(modal&&ta){ta.value=txt;modal.style.display='flex';}
       },400);
     } else {
       toast('送信に失敗しました。再度お試しください','err');
@@ -1698,7 +1709,7 @@ async function doEmailSend(){
     toast('通信エラーが発生しました','err');
   }finally{
     btn.disabled=!entries.length;
-    btn.textContent='📧 メールで送信';
+    btn.textContent='📤 情報をアップロード';
   }
 }
 
@@ -1727,6 +1738,7 @@ function initTimeSelects(){
   ['t1e','t2e'].forEach(id=>{const sel=document.getElementById(id);if(sel)sel.innerHTML=makeOpts(6,0);});
 }
 initTimeSelects();
+fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:'',ct:''}],memo:''});
 renderFF();
 </script>
 </body>
