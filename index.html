@@ -96,6 +96,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 .add-mode-btn{font-size:12px;color:#4299e1;background:none;border:none;cursor:pointer;padding:2px 0;font-weight:700}
 .cnt-btn{width:32px;height:32px;border:1.5px solid #e2e8f0;border-radius:6px;background:#f7fafc;font-size:18px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4a5568;touch-action:manipulation;}
 .cnt-btn:active{background:#e2e8f0;}
+.editing-card{background:#fff7ed !important;border:2px solid #ed8936 !important;}
+.editing-banner{background:#feebc8;color:#7b341e;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;margin-bottom:10px;display:none}
+.editing-banner.show{display:block}
 
 
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:10px 16px;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06)}
@@ -174,7 +177,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
 <!-- 器具フォーム -->
 <div class="card" id="form-card">
-  <div class="card-title">➕ 器具を追加</div>
+  <div class="editing-banner" id="editing-banner">✏️ 仕様変更中：変更後に「仕様変更を完了する」を押してください</div>
+  <div class="card-title" id="form-card-title">➕ 器具を追加</div>
 
   <div id="lib-sec" style="display:none">
     <div style="font-size:12px;color:#718096;margin-bottom:6px">▼ 登録済みの器具をタップ → 仕様を自動入力</div>
@@ -298,7 +302,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div id="guide-size-section">
     <div class="field">
       <label>設置面サイズ</label>
-      <div class="tgroup" style="margin-bottom:8px">
+      <div class="tgroup" style="margin-bottom:8px" id="gsz-shape-btns">
         <button class="tbtn" id="gsz-rect-btn" onclick="setGuideSizeShape('rect')">長方形</button>
         <button class="tbtn" id="gsz-circ-btn" onclick="setGuideSizeShape('circ')">丸形</button>
       </div>
@@ -475,19 +479,25 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
         <button class="tbtn" id="high-no"  onclick="setHigh('no')">なし</button>
         <button class="tbtn" id="high-yes" onclick="setHigh('yes')">あり</button>
       </div>
-      <div class="cmt" id="high-cmt"><input type="text" id="high-cmt-v" placeholder="備考（例：高所作業車が必要）"></div>
+      <div class="cmt" id="high-cmt">
+        <div class="uw" style="margin-bottom:6px">
+          <input type="number" id="high-h-v" placeholder="約何メートル" style="max-width:130px;text-align:right">
+          <span class="unit">m</span>
+        </div>
+        <input type="text" id="high-cmt-v" placeholder="必要な機材（例：高所作業車、脚立12尺）">
+      </div>
     </div>
   </div>
 
   <div id="emg-fields" style="display:none">
-    <div class="field">
+    <div class="field" id="emg-mount-field">
       <label>取付方法</label>
       <div class="tgroup">
         <button class="tbtn" id="em-embed"  onclick="setEmgMount('embed')">埋込</button>
         <button class="tbtn" id="em-direct" onclick="setEmgMount('direct')">直付け</button>
       </div>
     </div>
-    <div class="field">
+    <div class="field" id="emg-watt-field">
       <label>消費電力</label>
       <div class="tgroup">
         <button class="tbtn" id="ew-9"   onclick="setEmgWatt('9')">9W</button>
@@ -496,14 +506,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       </div>
       <div class="cmt" id="ew-other-cmt"><input type="text" id="ew-other-v" placeholder="例：5W"></div>
     </div>
-    <div class="field">
+    <div class="field" id="emg-water-field">
       <label>防水</label>
       <div class="tgroup">
         <button class="tbtn" id="ewater-dry" onclick="setEmgWater('dry')">非防水</button>
         <button class="tbtn" id="ewater-wet" onclick="setEmgWater('wet')">防水</button>
       </div>
     </div>
-    <div class="field">
+    <div class="field" id="emg-size-field">
       <label>サイズ</label>
       <div class="tgroup" style="flex-wrap:wrap">
         <button class="tbtn" id="esz-100" onclick="setEmgSize('100')">Φ100</button>
@@ -562,6 +572,9 @@ function confirmDel(eid){
 
 let entries=[],library=[],fFloors=[];
 let nextId=1,nextFid=1,nextMid=1;
+let editingId=null;
+const FLOOR_ORDER=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
+function sortByFloor(floors){floors.sort((a,b)=>{if(!a.floor)return 1;if(!b.floor)return -1;const ai=FLOOR_ORDER.indexOf(a.floor),bi=FLOOR_ORDER.indexOf(b.floor);return(ai===-1?999:ai)-(bi===-1?999:bi);});}
 let _lastRegMs=0;
 let rainSt='',highSt='',dbSt='',fixTypeSt='',emgMountSt='',emgWattSt='',emgWaterSt='',emgSizeSt='';
 let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt='',guideDirBSt='',guideInstallPosSt='',guideSizeSt='';
@@ -606,6 +619,14 @@ function setFixType(v){
   document.getElementById('fname-field').style.display=(isEonly||isGuide)?'none':'block';
   const ledStatusField=document.getElementById('led-status-field');
   if(ledStatusField)ledStatusField.style.display=isGuide?'none':'block';
+  // 旧器具LEDランプボタンとバイパス状況：eonly・guide では非表示
+  const clledBtn=document.getElementById('c-lled');
+  if(clledBtn)clledBtn.style.display=(isEonly||isGuide)?'none':'';
+  const lledDetailEl=document.getElementById('lled-detail');
+  if(lledDetailEl&&(isEonly||isGuide))lledDetailEl.style.display='none';
+  // eonly/guideに切替時に lled が選択されていたらリセット
+  if((isEonly||isGuide)&&ledSt==='lled'){ledSt='';const clledR=document.getElementById('c-lled');if(clledR)clledR.classList.remove('act-in');}
+  updateEmgForEonly();
   renderFF();
 }
 function setGuideLed(){
@@ -652,6 +673,27 @@ function setGuideInstallPos(v){
   ['ceil','wall','hang'].forEach(k=>document.getElementById('gip-'+k).classList.toggle('act-in',v===k));
   const hangField=document.getElementById('guide-hang-field');
   if(hangField)hangField.style.display=(v==='hang')?'block':'none';
+  // 天井・壁面：長方形/丸形ボタンを非表示にし縦横フィールドを直接表示
+  // 吊下げ：長方形/丸形ボタンを表示（形状未選択状態にリセット）
+  const isCeilOrWall=(v==='ceil'||v==='wall');
+  const shapeBtns=document.getElementById('gsz-shape-btns');
+  const rectFields=document.getElementById('gsz-rect-fields');
+  const circFields=document.getElementById('gsz-circ-fields');
+  if(isCeilOrWall){
+    if(shapeBtns)shapeBtns.style.display='none';
+    if(rectFields)rectFields.style.display='block';
+    if(circFields)circFields.style.display='none';
+    guideSizeSt='rect';
+    const rb=document.getElementById('gsz-rect-btn');if(rb)rb.classList.add('act-in');
+    const cb=document.getElementById('gsz-circ-btn');if(cb)cb.classList.remove('act-in');
+  } else {
+    if(shapeBtns)shapeBtns.style.display='';
+    guideSizeSt='';
+    if(rectFields)rectFields.style.display='none';
+    if(circFields)circFields.style.display='none';
+    const rb=document.getElementById('gsz-rect-btn');if(rb)rb.classList.remove('act-in');
+    const cb=document.getElementById('gsz-circ-btn');if(cb)cb.classList.remove('act-in');
+  }
 }
 function setGuideSizeShape(v){
   guideSizeSt=v;
@@ -685,8 +727,22 @@ function setLedSt(v){
   ledSt=ledSt===v?'':v;
   document.getElementById('c-led').classList.toggle('act-in',ledSt==='led');
   document.getElementById('c-lled').classList.toggle('act-in',ledSt==='lled');
-  document.getElementById('led-detail').style.display=ledSt==='led'?'block':'none';
-  document.getElementById('lled-detail').style.display=ledSt==='lled'?'block':'none';
+  const _isEonly=fixTypeSt==='eonly';
+  const _isGuide=fixTypeSt==='guide';
+  // eonly：LED器具選択時もled-detailは表示しない（取付方法・サイズのみ）
+  // guide・eonly：lled-detailも表示しない
+  document.getElementById('led-detail').style.display=(ledSt==='led'&&!_isEonly&&!_isGuide)?'block':'none';
+  document.getElementById('lled-detail').style.display=(ledSt==='lled'&&!_isEonly&&!_isGuide)?'block':'none';
+  updateEmgForEonly();
+}
+function updateEmgForEonly(){
+  const isEonly=fixTypeSt==='eonly';
+  const isLed=ledSt==='led';
+  // eonly + LED器具：消費電力・防水フィールドを非表示にして取付方法・サイズのみ表示
+  const wf=document.getElementById('emg-watt-field');
+  const wtf=document.getElementById('emg-water-field');
+  if(wf)wf.style.display=(isEonly&&isLed)?'none':'';
+  if(wtf)wtf.style.display=(isEonly&&isLed)?'none':'';
 }
 function setLedType(v){
   ledTypeSt=v;
@@ -746,7 +802,7 @@ function isOn(id){return document.getElementById(id).classList.contains('on');}
 function onCtChange(){/* ct moved to floor rows */}
 function defTimer(){return gv('t2s')&&gv('t2e')?'1':'';}
 function calcTot(rows){return rows.reduce((s,r)=>s+(parseInt(r.count)||0),0);}
-function flOpts(cur){
+function flOpts(cur,usedFloors=[]){
   const from=gv('fl-from'),to=gv('fl-to');
   const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
   let floorOpts=['屋上'];
@@ -754,7 +810,10 @@ function flOpts(cur){
     const fi=all.indexOf(from),ti=all.indexOf(to);
     if(fi>=0&&ti>=fi)floorOpts=all.slice(fi,ti+1).concat(['屋上']);
   }
-  return `<option value="">フロアを選択</option>`+floorOpts.map(f=>`<option${cur===f?' selected':''}>${f}</option>`).join('');
+  return `<option value="">フロアを選択</option>`+floorOpts.map(f=>{
+    const isUsed=usedFloors.includes(f)&&f!==cur;
+    return`<option${cur===f?' selected':''}${isUsed?' disabled style="color:#bbb"':''}>${f}</option>`;
+  }).join('');
 }
 
 function bothTimersSet(){return!!(gv('t1s')&&gv('t1e')&&gv('t2s')&&gv('t2e'));}
@@ -1000,20 +1059,25 @@ function fTC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.
 
 function updateRegBtn(){
   const btn=document.getElementById('reg-btn');if(!btn)return;
+  const isEdit=editingId!==null;
   if(fFloors.length){
     btn.disabled=false;btn.style.opacity='';btn.style.cursor='';
-    btn.textContent='✓ この器具を登録する';
+    btn.textContent=isEdit?'✓ 仕様変更を完了する':'✓ この器具を登録する';
+    btn.style.background=isEdit?'#ed8936':'';
   } else {
     btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';
-    btn.textContent='✓ この器具を登録する（フロアを追加してください）';
+    btn.textContent=isEdit?'✓ 仕様変更を完了する（フロアを追加してください）':'✓ この器具を登録する（フロアを追加してください）';
+    btn.style.background=isEdit?'#ed8936':'';
   }
 }
 function renderFF(){
   const c=document.getElementById('f-floors'),nm=document.getElementById('f-no-fl');
   if(!fFloors.length){c.innerHTML='';nm.style.display='block';updateRegBtn();return;}
+  sortByFloor(fFloors);
   nm.style.display='none';
   const isEonly=fixTypeSt==='eonly';
   const isGuide=fixTypeSt==='guide';
+  const allUsedF=fFloors.map(f=>f.floor).filter(Boolean);
   c.innerHTML=fFloors.map(f=>{
     const row=f.rows[0]||{id:nextMid++,mode:'',count:'',timer:'',ct:''};
     if(isEonly||isGuide){
@@ -1021,7 +1085,7 @@ function renderFF(){
       return`<div class="fl-block">
         <div class="fl-head">
           <select onchange="fFloorChg(${f.id},this.value)">
-            ${flOpts(f.floor)}
+            ${flOpts(f.floor,allUsedF)}
           </select>
           <div class="cnt-wrap">
             <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${f.id},${row.id},String(v));})()">－</button>
@@ -1043,7 +1107,7 @@ function renderFF(){
     return`<div class="fl-block">
       <div class="fl-head">
         <select onchange="fFloorChg(${f.id},this.value)">
-          ${flOpts(f.floor)}
+          ${flOpts(f.floor,allUsedF)}
         </select>
         <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
       </div>
@@ -1081,7 +1145,7 @@ function regEntry(){
     lamp:isEonly?'':gv('lamp'),ct:'',watt:isEonly?emgWatt:gv('watt'),
     dim:isEonly?emgSize:getDim(),dv:isEonly?null:getDv(),
     rain:isEonly?'':rainSt,rainC:isEonly?'':gv('rain-cmt-v'),
-    high:highSt,highC:gv('high-cmt-v'),
+    high:highSt,highH:gv('high-h-v'),highC:gv('high-cmt-v'),
     led:ledSt==='led',lled:ledSt==='lled',
     ledModel:gv('led-model'),ledType:ledTypeSt,
     ledWatt:gv('led-watt'),ledCt:gv('led-ct'),ledYear:gv('led-year'),
@@ -1090,13 +1154,18 @@ function regEntry(){
     parkingNo:gv('parking-no'),
     emgMount:isEonly?emgMountSt:'',emgWater:isEonly?emgWaterSt:'',
     guide:fixTypeSt==='guide'?{led:guideLedSt,grade:guideGradeSt,kind:guideKindSt,panelColor:guidePanelColorSt,dir:guideDirSt,dirB:guideDirBSt,year:gv('guide-year'),installPos:guideInstallPosSt,hangH:gv('guide-hang-h'),sizeShape:guideSizeSt,sizeRectH:gv('gsz-rect-h'),sizeRectW:gv('gsz-rect-w'),sizeCircPhi:gv('gsz-circ-phi')}:null};
-  entries.push({id:nextId++,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors))});
+  sortByFloor(fFloors);
+  const wasEditing=editingId!==null;
+  const eid2=wasEditing?editingId:nextId++;
+  if(wasEditing){editingId=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');}
+  entries.push({id:eid2,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors))});
+  entries.sort((a,b)=>a.id-b.id);
   fFloors=[];
   const key=fix.name+'|'+fix.dim+'|'+fix.lamp;
   if(!library.some(f=>f.name+'|'+f.dim+'|'+f.lamp===key))library.push(fix);
   refreshLib();renderEntries();renderFF();clearForm();
   document.getElementById('line-btn').disabled=false;
-  toast('登録しました！','ok');
+  toast(wasEditing?'No.'+eid2+'の仕様変更を完了しました！':'登録しました！','ok');
   document.getElementById('elist').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -1116,15 +1185,22 @@ function editEntry(eid){
   }
   applyFix(e.fix);
   fFloors=JSON.parse(JSON.stringify(e.floors));
+  editingId=eid;
   entries=entries.filter(en=>en.id!==eid);
   renderEntries();renderFF();
   document.getElementById('line-btn').disabled=!entries.length;
+  const fc=document.getElementById('form-card');if(fc)fc.classList.add('editing-card');
+  const eb=document.getElementById('editing-banner');if(eb)eb.classList.add('show');
+  updateRegBtn();
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});
-  toast('編集モード：変更後に「この器具を登録する」を押してください','ok');
+  toast('仕様変更モード（No.'+eid+'）：変更後に「仕様変更を完了する」を押してください','ok');
 }
 
 function clearForm(){
-  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','rain-cmt-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','rain-cmt-v','high-h-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
+  editingId=null;
+  const _fc=document.getElementById('form-card');if(_fc)_fc.classList.remove('editing-card');
+  const _eb=document.getElementById('editing-banner');if(_eb)_eb.classList.remove('show');;
   document.getElementById('all-same-chk').checked=false;
   document.getElementById('parking-field').style.display='none';
   const otherRow=document.getElementById('sec-other-row');if(otherRow)otherRow.style.display='none';
@@ -1158,6 +1234,7 @@ function clearForm(){
   ['guide-hang-h','gsz-rect-h','gsz-rect-w','gsz-circ-phi'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['gsz-rect-fields','gsz-circ-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   const gszSec=document.getElementById('guide-size-section');if(gszSec)gszSec.style.display='block';
+  const gszShapeBtns=document.getElementById('gsz-shape-btns');if(gszShapeBtns)gszShapeBtns.style.display='';
   fFloors=[];renderFF();
 }
 
@@ -1198,8 +1275,10 @@ function copyEntry(eid){
 function renderEF(eid){
   const e=findE(eid),el=document.getElementById(`efl-${eid}`);
   if(!e||!el)return;
+  sortByFloor(e.floors);
   const isEonly=e.fix?.fixType==='eonly';
   const isEGuide=e.fix?.fixType==='guide';
+  const allUsedE=e.floors.map(f=>f.floor).filter(Boolean);
   el.innerHTML=e.floors.map(f=>{
     const row=f.rows[0]||{id:nextMid++,mode:'',count:'',timer:'',ct:''};
     if(isEonly||isEGuide){
@@ -1207,7 +1286,7 @@ function renderEF(eid){
       return`<div class="efl-block">
         <div class="efl-head">
           <select onchange="eFlChg(${eid},${f.id},this.value)">
-            ${flOpts(f.floor)}
+            ${flOpts(f.floor,allUsedE)}
           </select>
           <div class="cnt-wrap">
             <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">－</button>
@@ -1224,7 +1303,7 @@ function renderEF(eid){
     return`<div class="efl-block">
       <div class="efl-head">
         <select onchange="eFlChg(${eid},${f.id},this.value)">
-          ${flOpts(f.floor)}
+          ${flOpts(f.floor,allUsedE)}
         </select>
         <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
       </div>
@@ -1274,13 +1353,36 @@ function applyFix(fix){
     sv('dfree',dv.free);
     setRain(fix.rain||'');sv('rain-cmt-v',fix.rainC);
   }
-  setHigh(fix.high||'');sv('high-cmt-v',fix.highC);
+  setHigh(fix.high||'');sv('high-h-v',fix.highH||'');sv('high-cmt-v',fix.highC);
   if(fix.led)setLedSt('led');else if(fix.lled)setLedSt('lled');else setLedSt('');
   if(fix.ledType)setLedType(fix.ledType);
   sv('led-model',fix.ledModel);sv('led-watt',fix.ledWatt);sv('led-ct',fix.ledCt);
   sv('led-year',fix.ledYear);sv('led-lwatt',fix.ledLwatt);sv('led-lct',fix.ledLct);
   if(fix.bypass)setBypass(fix.bypass);
   sv('parking-no',fix.parkingNo);
+  // 誘導灯の設定を復元
+  if(fix.fixType==='guide'&&fix.guide){
+    const g=fix.guide;
+    if(g.led){
+      guideLedSt='led';
+      const glb=document.getElementById('guide-led-btn');if(glb)glb.classList.add('act-in');
+      const gnl=document.getElementById('guide-non-led');if(gnl)gnl.style.display='none';
+      const gld=document.getElementById('guide-led-detail');if(gld)gld.style.display='block';
+      const gszSec=document.getElementById('guide-size-section');if(gszSec)gszSec.style.display='none';
+      sv('guide-year',g.year);
+    } else {
+      if(g.grade)setGuideGrade(g.grade);
+      if(g.kind)setGuideKind(g.kind);
+      if(g.panelColor)setGuidePanelColor(g.panelColor);
+      if(g.dir)setGuideDir(g.dir);
+      if(g.dirB)setGuideDirB(g.dirB);
+      if(g.installPos)setGuideInstallPos(g.installPos);
+      sv('guide-hang-h',g.hangH);
+      // 吊下げの場合のみ形状選択を復元（天井・壁面はsetGuideInstallPosで縦横を自動設定）
+      if(g.sizeShape&&g.installPos==='hang')setGuideSizeShape(g.sizeShape);
+      sv('gsz-rect-h',g.sizeRectH);sv('gsz-rect-w',g.sizeRectW);sv('gsz-circ-phi',g.sizeCircPhi);
+    }
+  }
   const pkf=el('parking-field');if(pkf)pkf.style.display=gv('sec')==='駐車場'?'block':'none';
   if(isEonly){
     if(fix.emgMount)setEmgMount(fix.emgMount);
@@ -1400,7 +1502,7 @@ function doExport(){
     const rr={in:'雨線内',out:'雨線外',unk:'未確認','':'―'}[f.rain]||'―';
     sc(RR,col,rr+(f.rainC?'（'+f.rainC+'）':''));mg(RR,col,RR,ec);
     const hr={yes:'あり',no:'なし','':'―'}[f.high]||'―';
-    sc(RH,col,hr+(f.highC?'（'+f.highC+'）':''));mg(RH,col,RH,ec);
+    sc(RH,col,hr+(f.highH?'　約'+f.highH+'m':'')+(f.highC?'（'+f.highC+'）':''));mg(RH,col,RH,ec);
     const lr=[f.led?'LED器具':'',f.lled?'旧器具LEDランプ':''].filter(Boolean).join('　')||'なし';
     sc(RLED,col,lr);mg(RLED,col,RLED,ec);
     sc(RFLH,col,'');mg(RFLH,col,RFLH,ec);
@@ -1443,7 +1545,7 @@ function doExport(){
         const t1s2=gv('t1s'),t1e2=gv('t1e'),t2s2=gv('t2s'),t2e2=gv('t2e');
         const timerLbl=r.mode==='タイマー'?(r.timer==='2'?'タイマー②':'タイマー①'):'';
         const timerTime=r.mode==='タイマー'?(r.timer==='2'&&t2s2&&t2e2?t2s2+'〜'+t2e2:(t1s2&&t1e2?t1s2+'〜'+t1e2:'')):'';
-        rows.push([idx+1,ent.section,f.name,f.dim||'',f.lamp||'',f.ct||'',f.watt||'',rl,f.rainC||'',hl,f.highC||'',ls,fl.floor,timerLbl||r.mode,r.count,timerTime,fl.memo]);
+        rows.push([idx+1,ent.section,f.name,f.dim||'',f.lamp||'',f.ct||'',f.watt||'',rl,f.rainC||'',hl,(f.highH?'約'+f.highH+'m　':''+(f.highC||'')),ls,fl.floor,timerLbl||r.mode,r.count,timerTime,fl.memo]);
       });
     });
   });
@@ -1510,7 +1612,7 @@ function doLineShare(){
     }
     // L4: 高所作業はありのみ表示
     if(f.high==='yes'){
-      txt+=`  高所作業：あり${f.highC?'（'+f.highC+'）':''}\n`;
+      txt+=`  高所作業：あり${f.highH?'　約'+f.highH+'m':''}${f.highC?'（'+f.highC+'）':''}\n`;
     }
     const lr=[f.led?'LED器具':'',f.lled?'旧器具LEDランプ':''].filter(Boolean).join('／');
     if(lr)txt+=`  LED状態：${lr}\n`;
