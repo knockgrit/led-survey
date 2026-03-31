@@ -629,6 +629,7 @@ function confirmDel(eid){
 let entries=[],library=[],fFloors=[];
 let nextId=1,nextFid=1,nextMid=1;
 let editingId=null;
+let _editBackup=null;
 const FLOOR_ORDER=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
 function sortByFloor(floors){floors.sort((a,b)=>{if(!a.floor)return 1;if(!b.floor)return -1;const ai=FLOOR_ORDER.indexOf(a.floor),bi=FLOOR_ORDER.indexOf(b.floor);return(ai===-1?999:ai)-(bi===-1?999:bi);});}
 let _lastRegMs=0;
@@ -669,12 +670,12 @@ function setFixType(v){
   });
   const isEonly=v==='eonly';
   const isGuide=v==='guide';
-  document.getElementById('normal-fields').style.display=(isEonly||isGuide)?'none':'block';
+  document.getElementById('normal-fields').style.display=(isEonly||isGuide||!v)?'none':'block';
   document.getElementById('emg-fields').style.display=isEonly?'block':'none';
   document.getElementById('guide-fields').style.display=isGuide?'block':'none';
-  document.getElementById('fname-field').style.display=(isEonly||isGuide)?'none':'block';
+  document.getElementById('fname-field').style.display=(isEonly||isGuide||!v)?'none':'block';
   const ledStatusField=document.getElementById('led-status-field');
-  if(ledStatusField)ledStatusField.style.display=isGuide?'none':'block';
+  if(ledStatusField)ledStatusField.style.display=(isGuide||!v)?'none':'block';
   // 旧器具LEDランプボタンとバイパス状況：eonly・guide では非表示
   const clledBtn=document.getElementById('c-lled');
   if(clledBtn)clledBtn.style.display=(isEonly||isGuide)?'none':'';
@@ -1208,6 +1209,17 @@ function regEntry(){
   const fullSection=secSub?sec+'　'+secSub:sec;
   if(!sec){toast('設置場所を選択してください','err');return;}
   if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');return;}
+  if(fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){
+    const _sh=gv('shape');
+    if(!_sh){toast('器具寸法の形状を選択してください','err');return;}
+    if(_sh==='s'&&!gv('dside')){toast('器具寸法（正方形の設置面□）を入力してください','err');return;}
+    if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');return;}
+    if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');return;}
+    if(ledSt!=='led'){
+      if(!gv('lamp')){toast('ランプ種別を入力してください','err');return;}
+      if(!gv('watt')){toast('消費電力を入力してください','err');return;}
+    }
+  }
   if(!fFloors.length){toast('フロア情報を追加してください','err');return;}
   const isEonly=fixTypeSt==='eonly';
   for(const f of fFloors){
@@ -1231,7 +1243,7 @@ function regEntry(){
   sortByFloor(fFloors);
   const wasEditing=editingId!==null;
   const eid2=wasEditing?editingId:nextId++;
-  if(wasEditing){editingId=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');}
+  if(wasEditing){editingId=null;_editBackup=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');}
   entries.push({id:eid2,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors))});
   entries.sort((a,b)=>a.id-b.id);
   fFloors=[];
@@ -1246,6 +1258,18 @@ function regEntry(){
 const SEC_OPTS=['その他','外壁','通路','廊下','階段','エントランス','駐輪場','駐車場','屋上','機械室','風除室','管理室','館名盤上','AL盤上','外部植栽','外構部'];
 function editEntry(eid){
   const e=findE(eid);if(!e)return;
+  // 既に仕様変更中なら元エントリーをentriesに戻す
+  if(editingId!==null){
+    if(!confirm('現在No.'+editingId+'を仕様変更中です。変更を破棄してNo.'+eid+'の仕様変更に切り替えますか？'))return;
+    if(_editBackup){
+      entries.push(_editBackup);
+      entries.sort((a,b)=>a.id-b.id);
+      _editBackup=null;
+    }
+    editingId=null;
+    const fc2=document.getElementById('form-card');if(fc2)fc2.classList.remove('editing-card');
+    const eb2=document.getElementById('editing-banner');if(eb2)eb2.classList.remove('show');
+  }
   if(SEC_OPTS.includes(e.section)){
     document.getElementById('sec').value=e.section;
     const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='none';
@@ -1255,10 +1279,13 @@ function editEntry(eid){
     document.getElementById('sec').value='その他';
     const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='block';
     const ss=document.getElementById('sec-sub');if(ss)ss.style.display='none';
-    const sm=document.getElementById('sec-main');if(sm)sm.value=e.section;
+    const parts=e.section.split('\u3000');
+    const sm=document.getElementById('sec-main');if(sm)sm.value=parts[0]||'';
+    const sso=document.getElementById('sec-sub-other');if(sso)sso.value=parts[1]||'';
   }
   applyFix(e.fix);
   fFloors=JSON.parse(JSON.stringify(e.floors));
+  _editBackup=JSON.parse(JSON.stringify(e));
   editingId=eid;
   entries=entries.filter(en=>en.id!==eid);
   renderEntries();renderFF();
@@ -1272,7 +1299,7 @@ function editEntry(eid){
 
 function clearForm(){
   ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','rain-cmt-v','high-h-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
-  editingId=null;
+  editingId=null;_editBackup=null;
   const _fc=document.getElementById('form-card');if(_fc)_fc.classList.remove('editing-card');
   const _eb=document.getElementById('editing-banner');if(_eb)_eb.classList.remove('show');;
   document.getElementById('all-same-chk').checked=false;
@@ -1504,7 +1531,6 @@ function renderEntries(){
     const f=e.fix;
     const tags=[];
     if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
-    else if(f.rain==='in')tags.push('<span class="tag t-ins">雨線内</span>');
     if(f.high==='yes')tags.push('<span class="tag t-high">高所あり</span>');
     if(f.led){tags.push('<span class="tag t-led">LED器具</span>');}
     if(f.lled){tags.push('<span class="tag t-led">旧LEDランプ</span>');}
@@ -1693,6 +1719,21 @@ async function doEmailSend(){
     const f=ent.fix;
     txt+=`\n━━━━━━━━━━\n`;
     txt+=`【器具${idx+1}】${ent.section}　${getDisplayName(f)}\n`;
+    const ftLbl={normal:'通常照明',ecomb:'非常灯兼用',eonly:'非常専用照明',guide:'誘導灯'}[f.fixType]||'';
+    if(ftLbl)txt+=`  器具種別：${ftLbl}\n`;
+    // 誘導灯（非LED）の詳細
+    if(f.fixType==='guide'&&f.guide&&!f.guide.led){
+      const grLbl={C:'C級',BL:'BL級',BH:'BH級',A:'A級'}[f.guide.grade||'']||'';
+      const knLbl={single:'片面',double:'両面'}[f.guide.kind||'']||'';
+      const pcLbl={green:'緑',white:'白'}[f.guide.panelColor||'']||'';
+      const dirLbl={left:'左',right:'右',both:'両方向'}[f.guide.dir||'']||'';
+      const ipLbl={ceil:'天井',wall:'壁面',hang:'吊下げ'}[f.guide.installPos||'']||'';
+      const szParts=[];
+      if(f.guide.sizeRectH||f.guide.sizeRectW)szParts.push((f.guide.sizeRectH||'')+'×'+(f.guide.sizeRectW||'')+'mm');
+      else if(f.guide.sizeCircPhi)szParts.push('Φ'+f.guide.sizeCircPhi+'mm');
+      const gdParts=[grLbl,knLbl,pcLbl,dirLbl,ipLbl,...szParts].filter(Boolean).join('/');
+      if(gdParts)txt+=`  誘導灯仕様：${gdParts}\n`;
+    }
     if(f.dim)txt+=`  寸法：${f.dim}\n`;
     if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}\n`;
     if(f.watt)txt+=`  消費電力：${f.watt}W\n`;
@@ -1717,7 +1758,7 @@ async function doEmailSend(){
           const ctLbl=r.ct?'['+shortCt(r.ct)+']':'';
           return lbl+ctLbl+(r.count?'×'+r.count+'台':'');
         }).join('/');
-        txt+=`  📍${fl.floor}：合計${tot}台（${ms}）`;
+        txt+=`  📍${fl.floor}：合計${tot}台${ms?'（'+ms+'）':''}`;
       }
       if(fl.memo)txt+=`　※${fl.memo}`;
       txt+='\n';
