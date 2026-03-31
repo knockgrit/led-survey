@@ -119,6 +119,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 </header>
 <div class="container">
 
+<!-- 調査実施者 -->
+<div class="card">
+  <div class="card-title">👤 調査実施者</div>
+  <div class="r2">
+    <div class="field">
+      <label>企業名</label>
+      <input type="text" id="surveyor-company" placeholder="例：株式会社〇〇">
+    </div>
+    <div class="field">
+      <label>氏名</label>
+      <input type="text" id="surveyor-name" placeholder="例：山田 太郎">
+    </div>
+  </div>
+</div>
+
 <!-- 建物情報 -->
 <div class="card">
   <div class="card-title">🏢 建物情報</div>
@@ -138,6 +153,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       <div style="display:flex;gap:4px;align-items:center">
         <select id="t2s" style="flex:1" onchange="onTimerChg()"></select><span class="unit">〜</span><select id="t2e" style="flex:1" onchange="onTimerChg()"></select>
       </div>
+    </div>
+  </div>
+  <div class="field">
+    <label>作業天井高</label>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="uw" style="flex:1"><input type="number" id="ceil-h-from" placeholder="最低" style="text-align:right"><span class="unit">m</span></div>
+      <span style="color:#718096">〜</span>
+      <div class="uw" style="flex:1"><input type="number" id="ceil-h-to" placeholder="最高" style="text-align:right"><span class="unit">m</span></div>
     </div>
   </div>
   <div class="field">
@@ -556,7 +579,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 </div>
 <div class="bottom-bar">
   <div class="bb-inner">
-    <button class="btn btn-full" id="line-btn" onclick="doLineShare()" disabled style="font-size:15px;background:#06C755;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:bold;cursor:pointer;margin-bottom:8px">📱 LINEで送る</button>
+    <button class="btn btn-full" id="send-btn" onclick="doEmailSend()" disabled style="font-size:15px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:bold;cursor:pointer;margin-bottom:8px">📧 メールで送信</button>
     
   </div>
 </div>
@@ -1164,7 +1187,7 @@ function regEntry(){
   const key=fix.name+'|'+fix.dim+'|'+fix.lamp;
   if(!library.some(f=>f.name+'|'+f.dim+'|'+f.lamp===key))library.push(fix);
   refreshLib();renderEntries();renderFF();clearForm();
-  document.getElementById('line-btn').disabled=false;
+  document.getElementById('send-btn').disabled=false;
   toast(wasEditing?'No.'+eid2+'の仕様変更を完了しました！':'登録しました！','ok');
   document.getElementById('elist').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1188,7 +1211,7 @@ function editEntry(eid){
   editingId=eid;
   entries=entries.filter(en=>en.id!==eid);
   renderEntries();renderFF();
-  document.getElementById('line-btn').disabled=!entries.length;
+  document.getElementById('send-btn').disabled=!entries.length;
   const fc=document.getElementById('form-card');if(fc)fc.classList.add('editing-card');
   const eb=document.getElementById('editing-banner');if(eb)eb.classList.add('show');
   updateRegBtn();
@@ -1258,7 +1281,7 @@ function delEntry(id){
   library=[];
   entries.forEach(e=>{const fix=e.fix;const key=fix.name+'|'+fix.dim+'|'+fix.lamp;if(!library.some(l=>l.name+'|'+l.dim+'|'+l.lamp===key))library.push(fix);});
   renderEntries();refreshLib();
-  document.getElementById('line-btn').disabled=!entries.length;
+  document.getElementById('send-btn').disabled=!entries.length;
 }
 function copyEntry(eid){
   const e=findE(eid);if(!e)return;
@@ -1577,9 +1600,10 @@ function convMode(mode,timer){
   return modeMap[mode]||mode;
 }
 
-// ── LINE送信 ──
-function doLineShare(){
+// ── メール送信（Web3Forms） ──
+async function doEmailSend(){
   if(!entries.length)return;
+  if(!confirm('調査データを office@knock-grit.co.jp に送信しますか？'))return;
   const bldg=gv('bldg')||'（未入力）';
   const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
   const hn=gv('hn');
@@ -1587,12 +1611,20 @@ function doLineShare(){
   const dbC=gv('db-cmt-v');
   const d=new Date();
   const dateStr=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+  const timeStr=`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const surveyorCompany=gv('surveyor-company');
+  const surveyorName=gv('surveyor-name');
+  const ceilFrom=gv('ceil-h-from');
+  const ceilTo=gv('ceil-h-to');
 
   let txt=`【LED照明現地調査】\n`;
-  txt+=`📅 ${dateStr}\n`;
+  txt+=`📅 調査日：${dateStr}\n`;
+  txt+=`🕐 共有日時：${dateStr} ${timeStr}\n`;
+  if(surveyorCompany||surveyorName)txt+=`👤 調査実施者：${[surveyorCompany,surveyorName].filter(Boolean).join('　')}\n`;
   txt+=`🏢 物件名：${bldg}\n`;
   if(t1s&&t1e)txt+=`⏰ タイマー①：${t1s}〜${t1e}\n`;
   if(t2s&&t2e)txt+=`⏰ タイマー②：${t2s}〜${t2e}\n`;
+  if(ceilFrom||ceilTo)txt+=`📐 作業天井高：${ceilFrom?ceilFrom+'m':''}${(ceilFrom&&ceilTo)?'〜':''}${ceilTo?ceilTo+'m':''}\n`;
   if(hn)txt+=`🪜 高所脚立以外：${hn}\n`;
   if(dbL)txt+=`🔑 分電盤解錠：${dbL}${dbC?'（'+dbC+'）':''}\n`;
   const bldgMemo=gv('bldg-memo');
@@ -1605,12 +1637,10 @@ function doLineShare(){
     if(f.dim)txt+=`  寸法：${f.dim}\n`;
     if(f.lamp)txt+=`  ランプ：${f.lamp}\n`;
     if(f.watt)txt+=`  消費電力：${f.watt}W\n`;
-    // L3: 雨線は雨線外・未確認のみ表示
     if(f.rain==='out'||f.rain==='unk'){
       const rr={out:'雨線外',unk:'未確認','':''}[f.rain]||'';
       txt+=`  雨線：${rr}${f.rainC?'（'+f.rainC+'）':''}\n`;
     }
-    // L4: 高所作業はありのみ表示
     if(f.high==='yes'){
       txt+=`  高所作業：あり${f.highH?'　約'+f.highH+'m':''}${f.highC?'（'+f.highC+'）':''}\n`;
     }
@@ -1618,14 +1648,11 @@ function doLineShare(){
     if(lr)txt+=`  LED状態：${lr}\n`;
     ent.floors.forEach(fl=>{
       if(!fl.floor)return;
-      const t1str=t1s&&t1e?t1s+'〜'+t1e:'';
-      const t2str=t2s&&t2e?t2s+'〜'+t2e:'';
       const tot=calcTot(fl.rows);
       const isEmgOnly=ent.fix.fixType==='eonly';
       if(isEmgOnly){
         txt+=`  📍${fl.floor}：合計${tot}台`;
       } else {
-        // L2: 点灯方式を略称に変換（色温度も含む）
         const ms=fl.rows.filter(r=>r.mode).map(r=>{
           const lbl=convMode(r.mode,r.timer);
           const ctLbl=r.ct?'['+shortCt(r.ct)+']':'';
@@ -1639,9 +1666,40 @@ function doLineShare(){
   });
   txt+=`\n以上`;
 
-  const url='https://line.me/R/msg/text/?'+encodeURIComponent(txt);
-  location.href=url;
-  toast('LINEを開きます','ok');
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;btn.textContent='送信中...';
+  try{
+    const res=await fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        access_key:'7889d92c-d035-4b8f-ab55-ab3193d05601',
+        subject:`【LED現地調査】${bldg}　${dateStr}`,
+        message:txt,
+        from_name:'LED現地調査フォーム'
+      })
+    });
+    const data=await res.json();
+    if(data.success){
+      toast('office@knock-grit.co.jp に送信しました！','ok');
+      setTimeout(()=>{
+        if(confirm('調査内容をコピーしますか？\n（手元に保管したい場合は「OK」）')){
+          navigator.clipboard.writeText(txt).then(()=>{
+            toast('クリップボードにコピーしました！','ok');
+          }).catch(()=>{
+            toast('コピーに失敗しました','err');
+          });
+        }
+      },400);
+    } else {
+      toast('送信に失敗しました。再度お試しください','err');
+    }
+  }catch(e){
+    toast('通信エラーが発生しました','err');
+  }finally{
+    btn.disabled=!entries.length;
+    btn.textContent='📧 メールで送信';
+  }
 }
 
 function pad(n){return String(n).padStart(2,'0');}
