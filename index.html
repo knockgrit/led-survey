@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>LED照明 現地調査</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:#f0f4f8;color:#2d3748;font-size:15px;-webkit-tap-highlight-color:transparent}
+header{background:linear-gradient(135deg,#1a365d,#2b6cb0);color:#fff;padding:6px 12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+header .hdr-inner{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}
+header .logo-wrap{position:absolute;top:6px;right:12px;}
+header .logo-wrap img{height:18px;width:auto;display:block;opacity:0.9;}
+header .hdr-title{font-size:11px;font-weight:700;opacity:0.85;margin:0;}
+header .hdr-bldg{font-size:13px;font-weight:700;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:calc(100vw - 130px);}
+.container{padding:12px;max-width:640px;margin:0 auto;padding-bottom:90px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.card-title{font-size:14px;font-weight:700;color:#2b6cb0;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #ebf8ff}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4px}
+.req{color:#e53e3e;margin-left:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=number],input[type=time],select,textarea{
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:15px;font-family:inherit;background:#f7fafc;-webkit-appearance:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;background:#fff}
+.uw{display:flex;align-items:center;gap:6px}
+.uw input{flex:1}
+.unit{color:#718096;font-size:13px;white-space:nowrap}
+.tgroup{display:flex;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.tbtn{flex:1;padding:10px 6px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;background:#f7fafc;color:#718096;border:none;transition:all .15s;line-height:1.2;touch-action:manipulation}
+.tbtn.act-in{background:#c6f6d5;color:#276749}
+.tbtn.act-out{background:#fed7d7;color:#c53030}
+.tbtn.act-yes{background:#feebc8;color:#7b341e}
+.tbtn.act-no{background:#c6f6d5;color:#276749}
+.tbtn.act-common{background:#c6f6d5;color:#276749}
+.tbtn.act-special{background:#feebc8;color:#7b341e}
+.tbtn.act-unk{background:#e2e8f0;color:#4a5568}
+.cmt{margin-top:6px;display:none}
+.cmt.show{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;cursor:pointer;background:#f7fafc;user-select:none;font-weight:600;transition:all .15s}
+.chip.on{border-color:#4299e1;background:#ebf8ff;color:#2b6cb0}
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.lib-item{border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;cursor:pointer;background:#f7fafc;transition:all .15s}
+.lib-item.sel{border-color:#4299e1;background:#ebf8ff}
+.lib-item .ln{font-weight:700;font-size:13px;color:#2d3748}
+.lib-item .ls{font-size:11px;color:#718096;margin-top:2px}
+.dim-blk{display:none;margin-top:8px}
+.dim-blk.show{display:block}
+.fl-block{background:#f7fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:8px}
+.fl-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.fl-head select{flex:1}
+.mode-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.mode-row select{flex:none;width:130px;min-width:0;font-size:13px}
+.cnt-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.cnt-wrap input{flex:1;min-width:0;padding:8px 8px}
+.timer-row{display:none;align-items:center;gap:6px;margin-bottom:6px;padding-left:8px}
+.timer-row.show{display:flex}
+.timer-row input{flex:1}
+.fl-total{font-size:12px;font-weight:700;color:#2b6cb0;margin:4px 0 8px}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;line-height:1;touch-action:manipulation}
+.btn:active{transform:scale(.97)}
+.btn-blue{background:#2b6cb0;color:#fff}
+.btn-green{background:#38a169;color:#fff}
+.btn-red{background:#e53e3e;color:#fff}
+.btn-orange{background:#ed8936;color:#fff}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:6px}
+.btn-xs{padding:4px 8px;font-size:11px;border-radius:5px}
+.btn-full{width:100%;justify-content:center}
+.btn:disabled{background:#a0aec0;cursor:not-allowed;transform:none}
+.ecard{border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.ec-head{padding:10px 14px;background:#f0f9ff;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #e2e8f0;gap:8px}
+.ec-left{flex:1;min-width:0}
+.ec-no{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#2b6cb0;color:#fff;margin-right:6px}
+.ec-sec{font-size:12px;color:#718096}
+.ec-name{font-weight:700;font-size:15px;color:#2d3748;margin-top:2px}
+.ec-spec{font-size:12px;color:#718096;margin-top:2px}
+.ec-body{padding:10px 14px}
+.efl-block{background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px}
+.efl-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.efl-head select{flex:1}
+.ec-footer{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid #e2e8f0;background:#fafafa}
+.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;margin:2px}
+.t-rain{background:#fed7d7;color:#c53030}
+.t-high{background:#feebc8;color:#7b341e}
+.t-led{background:#c6f6d5;color:#276749}
+.t-ins{background:#bee3f8;color:#2c5282}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#e53e3e;color:#fff;font-size:11px;font-weight:700}
+.empty{text-align:center;padding:24px;color:#a0aec0;font-size:14px}
+.divider{height:1px;background:#e2e8f0;margin:12px 0}
+.sep{text-align:center;font-size:12px;color:#a0aec0;margin:8px 0;position:relative}
+.sep::before,.sep::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e2e8f0}
+.sep::before{left:0}.sep::after{right:0}
+.add-mode-btn{font-size:12px;color:#4299e1;background:none;border:none;cursor:pointer;padding:2px 0;font-weight:700}
+.cnt-btn{width:32px;height:32px;border:1.5px solid #e2e8f0;border-radius:6px;background:#f7fafc;font-size:18px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4a5568;touch-action:manipulation;}
+.cnt-btn:active{background:#e2e8f0;}
+
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:10px 16px;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+.bb-inner{max-width:640px;margin:0 auto}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#2d3748;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1}
+.toast.ok{background:#38a169}
+.toast.err{background:#e53e3e}
+</style>
+</head>
+<body>
+<header style="position:sticky;top:0;z-index:200;">
+  <div class="logo-wrap"><img src="data:image/png;base64,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" alt="KNOCK GRIT"></div>
+  <div class="hdr-inner">
+    <div class="hdr-title">LED現地調査フォーム</div>
+    <div class="hdr-bldg" id="h-bldg">物件名未入力</div>
+  </div>
+</header>
+<div class="container">
+
+<!-- 建物情報 -->
+<div class="card">
+  <div class="card-title">🏢 建物情報</div>
+  <div class="field">
+    <label>物件名</label>
+    <input type="text" id="bldg" placeholder="例：エスポワール" oninput="updH()">
+  </div>
+  <div class="r2">
+    <div class="field">
+      <label>タイマー設定①</label>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="t1s" style="flex:1" onchange="onTimerChg()"></select><span class="unit">〜</span><select id="t1e" style="flex:1" onchange="onTimerChg()"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>タイマー設定②</label>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="t2s" style="flex:1" onchange="onTimerChg()"></select><span class="unit">〜</span><select id="t2e" style="flex:1" onchange="onTimerChg()"></select>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <label>高所脚立以外</label>
+    <input type="text" id="hn" placeholder="例：高所作業車、足場など">
+  </div>
+  <div class="field">
+    <label>分電盤（解錠方法）</label>
+    <div class="tgroup">
+      <button class="tbtn" id="db-common"  onclick="setDb('common')">共通キーで可</button>
+      <button class="tbtn" id="db-special" onclick="setDb('special')">専用鍵が必要</button>
+      <button class="tbtn" id="db-unk"     onclick="setDb('unk')" style="flex:.7;font-size:11px">不明</button>
+    </div>
+    <div class="cmt" id="db-cmt">
+      <input type="text" id="db-cmt-v" placeholder="例：階段下に施錠箇所あり">
+    </div>
+  </div>
+  <div class="field">
+    <label>建物階数範囲（規定）</label>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <select id="fl-from" style="flex:1" onchange="initFlTo()">
+        <option value="">最低階</option>
+        <option>B3</option><option>B2</option><option>B1</option><option>1F</option><option>2F</option><option>3F</option><option>4F</option><option>5F</option><option>6F</option><option>7F</option><option>8F</option><option>9F</option><option>10F</option><option>11F</option><option>12F</option><option>13F</option><option>14F</option><option>15F</option><option>16F</option><option>17F</option><option>18F</option><option>19F</option><option>20F</option>
+      </select>
+      <span>〜</span>
+      <select id="fl-to" style="flex:1">
+        <option value="">最高階</option>
+      </select>
+    </div>
+    <p style="font-size:11px;color:#718096;margin-top:4px;">※フロア選択肢の範囲を設定します</p>
+  </div>
+  <div class="field">
+    <label>建物備考</label>
+    <textarea id="bldg-memo" rows="2" placeholder="建物全体の特記事項など" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff;resize:vertical"></textarea>
+  </div>
+</div>
+
+<!-- 器具フォーム -->
+<div class="card" id="form-card">
+  <div class="card-title">➕ 器具を追加</div>
+
+  <div id="lib-sec" style="display:none">
+    <div style="font-size:12px;color:#718096;margin-bottom:6px">▼ 登録済みの器具をタップ → 仕様を自動入力</div>
+    <div class="lib-grid" id="lib-grid"></div>
+    <div style="font-size:11px;color:#e53e3e;margin:-4px 0 8px;padding:0 4px">※こちらはコピーして新規追加となり、台数の追加などは下部の登録済み器具より編集してください</div>
+    <div class="sep">または新規入力</div>
+  </div>
+
+    <div class="field">
+    <label>設置場所・セクション<span class="req">*</span></label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <select id="sec" style="flex:1" onchange="onSec()">
+        <option value="">選択してください</option>
+        <option>その他</option>
+        <option>外壁</option><option>通路</option><option>廊下</option><option>階段</option>
+        <option>エントランス</option><option>風除室</option><option>駐輪場</option><option>駐車場</option>
+        <option>屋上</option><option>機械室</option>
+        <option>管理室</option><option>館名盤上</option>
+        <option>AL盤上</option><option>外部植栽</option><option>外構部</option>
+      </select>
+      <input type="text" id="sec-sub" placeholder="詳細場所（任意）" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc">
+    </div>
+    <!-- その他の場合のメイン/サブ入力欄 -->
+    <div id="sec-other-row" style="display:none;margin-top:8px;display:none">
+      <div style="display:flex;gap:6px">
+        <input type="text" id="sec-main" placeholder="例）入口" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc">
+        <input type="text" id="sec-sub-other" placeholder="例）軒下" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc">
+      </div>
+    </div>
+  </div>
+
+  <div class="field" id="parking-field" style="display:none">
+    <input type="text" id="parking-no" placeholder="駐車場移動車両NO（例：8, 16, 24）" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff">
+  </div>
+
+  <div class="field">
+    <label>器具種別</label>
+    <div class="tgroup" style="flex-wrap:wrap">
+      <button class="tbtn" id="ft-normal" onclick="setFixType('normal')">通常照明</button>
+      <button class="tbtn" id="ft-ecomb" onclick="setFixType('ecomb')">非常灯兼用</button>
+      <button class="tbtn" id="ft-eonly" onclick="setFixType('eonly')">非常専用照明</button>
+      <button class="tbtn" id="ft-guide" onclick="setFixType('guide')">誘導灯</button>
+    </div>
+  </div>
+
+  <!-- 誘導灯専用フィールド -->
+  <div id="guide-fields" style="display:none">
+    <div class="field">
+      <label>LED対応状況</label>
+      <div class="tgroup">
+        <button class="tbtn" id="guide-led-btn" onclick="setGuideLed()">既にLED器具</button>
+      </div>
+    </div>
+    <!-- 非LED時 -->
+    <div id="guide-non-led">
+      <div class="field">
+        <label>等級</label>
+        <div class="tgroup" style="flex-wrap:wrap">
+          <button class="tbtn" id="gg-c"  onclick="setGuideGrade('C')">C級(FL10)</button>
+          <button class="tbtn" id="gg-bl" onclick="setGuideGrade('BL')">BL級(FL20)</button>
+          <button class="tbtn" id="gg-bh" onclick="setGuideGrade('BH')">BH級(FL40)</button>
+          <button class="tbtn" id="gg-a"  onclick="setGuideGrade('A')">A級(FL40×2)</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>種別</label>
+        <div class="tgroup">
+          <button class="tbtn" id="gt-single" onclick="setGuideKind('single')">片面</button>
+          <button class="tbtn" id="gt-double" onclick="setGuideKind('double')">両面</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>パネル色</label>
+        <div class="tgroup">
+          <button class="tbtn" id="gp-green" onclick="setGuidePanelColor('green')">緑</button>
+          <button class="tbtn" id="gp-white" onclick="setGuidePanelColor('white')">白</button>
+        </div>
+      </div>
+      <div class="field">
+        <label id="guide-dir-label">人の向き</label>
+        <div class="tgroup">
+          <button class="tbtn" id="gd-left"  onclick="setGuideDir('left')">左</button>
+          <button class="tbtn" id="gd-right" onclick="setGuideDir('right')">右</button>
+          <button class="tbtn" id="gd-both"  onclick="setGuideDir('both')">右左</button>
+        </div>
+      </div>
+      <div class="field" id="guide-dir-b-field" style="display:none">
+        <label>人の向き(B面)</label>
+        <div class="tgroup">
+          <button class="tbtn" id="gdb-left"  onclick="setGuideDirB('left')">左</button>
+          <button class="tbtn" id="gdb-right" onclick="setGuideDirB('right')">右</button>
+          <button class="tbtn" id="gdb-both"  onclick="setGuideDirB('both')">右左</button>
+        </div>
+      </div>
+    </div>
+    <!-- LED選択時 -->
+    <div id="guide-led-detail" style="display:none">
+      <div class="field">
+        <label>製造年数</label>
+        <input type="text" id="guide-year" placeholder="例：2018年製">
+      </div>
+    </div>
+    <!-- 設置位置 -->
+    <div class="field">
+      <label>設置位置</label>
+      <div class="tgroup">
+        <button class="tbtn" id="gip-ceil" onclick="setGuideInstallPos('ceil')">天井</button>
+        <button class="tbtn" id="gip-wall" onclick="setGuideInstallPos('wall')">壁面</button>
+        <button class="tbtn" id="gip-hang" onclick="setGuideInstallPos('hang')">吊下げ</button>
+      </div>
+    </div>
+    <!-- 吊下げ高（吊下げ時のみ） -->
+    <div class="field" id="guide-hang-field" style="display:none">
+      <label>吊下げ高</label>
+      <div class="uw">
+        <input type="text" id="guide-hang-h" placeholder="例：2500">
+        <span class="unit">mm</span>
+      </div>
+    </div>
+    <!-- 設置面サイズ -->
+    <div id="guide-size-section">
+    <div class="field">
+      <label>設置面サイズ</label>
+      <div class="tgroup" style="margin-bottom:8px">
+        <button class="tbtn" id="gsz-rect-btn" onclick="setGuideSizeShape('rect')">長方形</button>
+        <button class="tbtn" id="gsz-circ-btn" onclick="setGuideSizeShape('circ')">丸形</button>
+      </div>
+      <div id="gsz-rect-fields" style="display:none">
+        <div class="r2">
+          <div class="uw"><input type="text" id="gsz-rect-h" placeholder="縦"><span class="unit">mm</span></div>
+          <div class="uw"><input type="text" id="gsz-rect-w" placeholder="横"><span class="unit">mm</span></div>
+        </div>
+      </div>
+      <div id="gsz-circ-fields" style="display:none">
+        <div class="uw">
+          <span class="unit">Φ</span>
+          <input type="text" id="gsz-circ-phi" placeholder="例：200">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="field" id="led-status-field">
+    <label>LED対応状況</label>
+    <div class="tgroup">
+      <button class="tbtn" id="c-led"  onclick="setLedSt('led')">既にLED器具</button>
+      <button class="tbtn" id="c-lled" onclick="setLedSt('lled')">旧器具LEDランプ</button>
+    </div>
+  </div>
+
+  <!-- 既にLED器具の場合 -->
+  <div id="led-detail" style="display:none">
+    <div class="field">
+      <label>型番</label>
+      <input type="text" id="led-model" placeholder="例：LGW80190LE1">
+    </div>
+    <div class="field">
+      <label>タイプ</label>
+      <div class="tgroup">
+        <button class="tbtn" id="led-ittai" onclick="setLedType('ittai')">一体形</button>
+        <button class="tbtn" id="led-lamp" onclick="setLedType('lamp')">ランプ交換可能型</button>
+      </div>
+    </div>
+    <!-- 一体形の場合 -->
+    <div id="led-ittai-fields">
+      <div class="r2">
+        <div class="field"><label>消費電力</label><div class="uw"><input type="number" id="led-watt" placeholder="例：16.5"><span class="unit">W</span></div></div>
+        <div class="field"><label>色温度</label>
+          <select id="led-ct">
+            <option value="">選択</option><option>昼白色(5000K)</option><option>白色(4000K)</option>
+            <option>昼光色(6500K)</option><option>電球色(3000K)</option><option>不明</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>製造年数</label><input type="text" id="led-year" placeholder="例：2018年製"></div>
+    </div>
+    <!-- ランプ交換可能型の場合 -->
+    <div id="led-lamp-fields" style="display:none">
+      <div class="r2">
+        <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-lwatt" placeholder="例：10"><span class="unit">W</span></div></div>
+        <div class="field"><label>ランプ色温度</label>
+          <select id="led-lct">
+            <option value="">選択</option><option>昼白色(5000K)</option><option>白色(4000K)</option>
+            <option>昼光色(6500K)</option><option>電球色(3000K)</option><option>不明</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 旧器具LEDランプの場合 -->
+  <div id="lled-detail" style="display:none">
+    <div class="field">
+      <label>バイパス状況</label>
+      <div class="tgroup">
+        <button class="tbtn" id="byp-no"  onclick="setBypass('no')">バイパス不要形</button>
+        <button class="tbtn" id="byp-done" onclick="setBypass('done')">バイパス工事済み</button>
+        <button class="tbtn" id="byp-none" onclick="setBypass('none')">未バイパス</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="field" id="fname-field">
+    <label>照明名称<span class="req">*</span></label>
+    <input type="text" id="fname" placeholder="例：壁面ブラケット(A)、防犯灯">
+  </div>
+
+  <div id="normal-fields">
+    <div class="field" id="normal-dim-field">
+      <label>器具寸法</label>
+      <select id="shape" onchange="onShape()">
+        <option value="">形状を選択</option>
+        <option value="c">丸形（Φ）</option>
+        <option value="s">正方形（□）</option>
+        <option value="r">長方形</option>
+        <option value="f">特殊形状・自由記入</option>
+      </select>
+
+      <!-- 丸形 外径・内径 -->
+      <div class="dim-blk" id="dim-c">
+        <div class="uw">
+          <span class="unit" style="font-size:13px;font-weight:700;min-width:52px">外径 Φ</span>
+          <input type="number" id="dphi-out" placeholder="120"><span class="unit">mm</span>
+        </div>
+        <div class="uw" style="margin-top:6px">
+          <span class="unit" style="font-size:13px;font-weight:700;min-width:52px">内径 Φ</span>
+          <input type="number" id="dphi-in" placeholder="内径（任意）"><span class="unit">mm</span>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※ダウンライトは外径必須。塗装やコーキングがある場合も隠せる外径を入力</div>
+      </div>
+
+      <!-- 正方形 設置面 -->
+      <div class="dim-blk" id="dim-s">
+        <div class="uw">
+          <span class="unit" style="font-size:13px;font-weight:700;min-width:52px">設置面 □</span>
+          <input type="number" id="dside" placeholder="200"><span class="unit">mm</span>
+        </div>
+        <div class="uw" style="margin-top:6px">
+          <span class="unit" style="font-size:12px;color:#718096;min-width:52px">最大外径□</span>
+          <input type="number" id="dside-max" placeholder=""><span class="unit">mm</span>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:#e53e3e;padding-left:4px">※器具設置に際して障害となる壁等がある場合にご記入ください</div>
+      </div>
+
+      <!-- 長方形 設置面 -->
+      <div class="dim-blk" id="dim-r">
+        <div class="r2">
+          <div class="uw"><span class="unit">設置面 縦</span><input type="number" id="dh" placeholder="220"><span class="unit">mm</span></div>
+          <div class="uw"><span class="unit">設置面 横</span><input type="number" id="dw" placeholder="720"><span class="unit">mm</span></div>
+        </div>
+        <div style="margin-top:6px">
+          <div style="font-size:12px;color:#718096;margin-bottom:4px">最大外径</div>
+          <div class="r2">
+            <div class="uw"><span class="unit">縦</span><input type="number" id="drect-max-h" placeholder=""><span class="unit">mm</span></div>
+            <div class="uw"><span class="unit">横</span><input type="number" id="drect-max-w" placeholder=""><span class="unit">mm</span></div>
+          </div>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:#e53e3e;padding-left:4px">※器具設置に際して障害となる壁等がある場合にご記入ください</div>
+      </div>
+
+      <!-- 特殊形状 外径 -->
+      <div class="dim-blk" id="dim-f">
+        <div style="font-size:12px;color:#718096;margin-bottom:4px">外径・サイズ</div>
+        <input type="text" id="dfree" placeholder="例：125×270mm">
+        <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※ダウンライトは外径必須。塗装やコーキングがある場合も隠せる外径を入力</div>
+      </div>
+    </div>
+
+    <div class="field"><label>ランプ種別</label><input type="text" id="lamp" placeholder="例：FPL13、FL20"></div>
+    <div class="field">
+      <label>消費電力</label>
+      <div class="uw" style="max-width:200px"><input type="number" id="watt" placeholder="例：16.5"><span class="unit">W</span></div>
+      <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※器具側型番記載の消費電力。ランプが異なる場合はランプ記載の消費電力を入力</div>
+    </div>
+
+    <div class="field" id="senyu-field">
+      <label>専有部</label>
+      <div class="tgroup">
+        <button class="tbtn" id="senyu-btn" onclick="setSenyu()">専有部回路または専有部の可能性あり</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>雨線</label>
+      <div class="tgroup">
+        <button class="tbtn" id="rain-in"  onclick="setRain('in')">雨線内</button>
+        <button class="tbtn" id="rain-out" onclick="setRain('out')">雨線外</button>
+
+      </div>
+      <div class="cmt" id="rain-cmt"><input type="text" id="rain-cmt-v" placeholder="備考（例：軒下だが雨がかかる可能性あり）"></div>
+    </div>
+
+    <div class="field">
+      <label>高所作業</label>
+      <div class="tgroup">
+        <button class="tbtn" id="high-no"  onclick="setHigh('no')">なし</button>
+        <button class="tbtn" id="high-yes" onclick="setHigh('yes')">あり</button>
+      </div>
+      <div class="cmt" id="high-cmt"><input type="text" id="high-cmt-v" placeholder="備考（例：高所作業車が必要）"></div>
+    </div>
+  </div>
+
+  <div id="emg-fields" style="display:none">
+    <div class="field">
+      <label>取付方法</label>
+      <div class="tgroup">
+        <button class="tbtn" id="em-embed"  onclick="setEmgMount('embed')">埋込</button>
+        <button class="tbtn" id="em-direct" onclick="setEmgMount('direct')">直付け</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>消費電力</label>
+      <div class="tgroup">
+        <button class="tbtn" id="ew-9"   onclick="setEmgWatt('9')">9W</button>
+        <button class="tbtn" id="ew-13"  onclick="setEmgWatt('13')">13W</button>
+        <button class="tbtn" id="ew-oth" onclick="setEmgWatt('other')">その他</button>
+      </div>
+      <div class="cmt" id="ew-other-cmt"><input type="text" id="ew-other-v" placeholder="例：5W"></div>
+    </div>
+    <div class="field">
+      <label>防水</label>
+      <div class="tgroup">
+        <button class="tbtn" id="ewater-dry" onclick="setEmgWater('dry')">非防水</button>
+        <button class="tbtn" id="ewater-wet" onclick="setEmgWater('wet')">防水</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>サイズ</label>
+      <div class="tgroup" style="flex-wrap:wrap">
+        <button class="tbtn" id="esz-100" onclick="setEmgSize('100')">Φ100</button>
+        <button class="tbtn" id="esz-150" onclick="setEmgSize('150')">Φ150</button>
+        <button class="tbtn" id="esz-200" onclick="setEmgSize('200')">Φ200</button>
+        <button class="tbtn" id="esz-oth" onclick="setEmgSize('other')">その他</button>
+      </div>
+      <div class="cmt" id="esz-other-cmt"><input type="text" id="esz-other-v" placeholder="例：Φ250"></div>
+    </div>
+  </div>
+
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:700;color:#4a5568;margin-bottom:8px">📍 台数入力</div>
+  </div>
+  <div id="f-floors"></div>
+  <div id="f-no-fl" style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0">
+    <div style="margin-bottom:8px">「フロア追加」を押して入力してください</div>
+    <button class="btn btn-sm btn-blue" onclick="addOneFF()" style="width:100%;touch-action:manipulation">＋ 新規フロアを追加</button>
+  </div>
+  <div style="margin:8px 0 12px">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="all-same-chk" onchange="applyAllSame(this.checked)" style="width:16px;height:16px;touch-action:manipulation">
+      <span style="font-size:12px">全フロア共通（現在表示中の全フロアの台数・点灯方式・色温度を一番上のフロア情報に統一する）</span>
+    </label>
+  </div>
+
+  <button type="button" id="reg-btn" class="btn btn-green btn-full" onclick="regEntry()" style="margin-top:14px;opacity:0.4;cursor:not-allowed" disabled>✓ この器具を登録する（フロアを追加してください）</button>
+</div>
+
+<!-- 登録済み一覧 -->
+<div class="card">
+  <div class="card-title">📋 登録済み器具の確認編集 <span class="badge" id="ecnt">0</span></div>
+  <div id="elist"><div class="empty">まだ登録されていません</div></div>
+</div>
+
+</div>
+<div class="bottom-bar">
+  <div class="bb-inner">
+    <button class="btn btn-full" id="line-btn" onclick="doLineShare()" disabled style="font-size:15px;background:#06C755;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:bold;cursor:pointer;margin-bottom:8px">📱 LINEで送る</button>
+    
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ抜き','ランプ切れ','建物側人感センサー','器具付人感センサー','自動点滅器付き器具'];
+const FLOORS=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
+
+function confirmDel(eid){
+  if(confirm('本当に削除しますか？'))delEntry(eid);
+}
+
+let entries=[],library=[],fFloors=[];
+let nextId=1,nextFid=1,nextMid=1;
+let _lastRegMs=0;
+let rainSt='',highSt='',dbSt='',fixTypeSt='',emgMountSt='',emgWattSt='',emgWaterSt='',emgSizeSt='';
+let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt='',guideDirBSt='',guideInstallPosSt='',guideSizeSt='';
+let senyuSt=false,ledSt='',ledTypeSt='',bypassSt='';
+const openCards=new Set();
+
+function updH(){document.getElementById('h-bldg').textContent=gv('bldg')||'物件名未入力';}
+function gv(id){return document.getElementById(id)?.value?.trim()||'';}
+
+
+function setDb(v){
+  dbSt=v;
+  ['common','special','unk'].forEach(k=>{
+    const cls=v===k?({'common':'act-common','special':'act-special','unk':'act-unk'}[k]):'';
+    document.getElementById('db-'+k).className='tbtn'+(cls?' '+cls:'');
+  });
+  document.getElementById('db-cmt').classList.toggle('show',v==='special');
+}
+function setRain(v){
+  rainSt=v;
+  document.getElementById('rain-in').className='tbtn'+(v==='in'?' act-in':'');
+  document.getElementById('rain-out').className='tbtn'+(v==='out'?' act-out':'');
+  const runk=document.getElementById('rain-unk');if(runk)runk.className='tbtn'+(v==='unk'?' act-unk':'');
+  document.getElementById('rain-cmt').classList.toggle('show',v!==''&&v!=='unk');
+}
+function setHigh(v){
+  highSt=v;
+  document.getElementById('high-no').className='tbtn'+(v==='no'?' act-no':'');
+  document.getElementById('high-yes').className='tbtn'+(v==='yes'?' act-yes':'');
+  document.getElementById('high-cmt').classList.toggle('show',v==='yes');
+}
+function setFixType(v){
+  fixTypeSt=v;
+  ['normal','ecomb','eonly','guide'].forEach(k=>{
+    const el=document.getElementById('ft-'+k);if(el)el.classList.toggle('act-in',v===k);
+  });
+  const isEonly=v==='eonly';
+  const isGuide=v==='guide';
+  document.getElementById('normal-fields').style.display=(isEonly||isGuide)?'none':'block';
+  document.getElementById('emg-fields').style.display=isEonly?'block':'none';
+  document.getElementById('guide-fields').style.display=isGuide?'block':'none';
+  document.getElementById('fname-field').style.display=(isEonly||isGuide)?'none':'block';
+  const ledStatusField=document.getElementById('led-status-field');
+  if(ledStatusField)ledStatusField.style.display=isGuide?'none':'block';
+  renderFF();
+}
+function setGuideLed(){
+  if(!guideLedSt){
+    if(!confirm('LED器具と冷陰極蛍光ランプを使用したコンパクト誘導灯とでは見た目が似ていますが本当にLED器具で間違いないでしょうか？'))return;
+    guideLedSt='led';
+  } else {
+    guideLedSt='';
+    const fn=document.getElementById('fname');if(fn)fn.value='';
+  }
+  document.getElementById('guide-led-btn').classList.toggle('act-in',!!guideLedSt);
+  document.getElementById('guide-non-led').style.display=guideLedSt?'none':'block';
+  document.getElementById('guide-led-detail').style.display=guideLedSt?'block':'none';
+  const gszSec=document.getElementById('guide-size-section');
+  if(gszSec)gszSec.style.display=guideLedSt?'none':'block';
+}
+function setGuideGrade(v){
+  guideGradeSt=v;
+  ['c','bl','bh','a'].forEach(k=>document.getElementById('gg-'+k).classList.toggle('act-in',v.toLowerCase()===k));
+}
+function setGuideKind(v){
+  guideKindSt=v;
+  document.getElementById('gt-single').classList.toggle('act-in',v==='single');
+  document.getElementById('gt-double').classList.toggle('act-in',v==='double');
+  const isDouble=v==='double';
+  const lbl=document.getElementById('guide-dir-label');if(lbl)lbl.textContent=isDouble?'人の向き(A面)':'人の向き';
+  document.getElementById('guide-dir-b-field').style.display=isDouble?'block':'none';
+}
+function setGuidePanelColor(v){
+  guidePanelColorSt=v;
+  document.getElementById('gp-green').classList.toggle('act-in',v==='green');
+  document.getElementById('gp-white').classList.toggle('act-in',v==='white');
+}
+function setGuideDir(v){
+  guideDirSt=v;
+  ['left','right','both'].forEach(k=>document.getElementById('gd-'+k).classList.toggle('act-in',v===k));
+}
+function setGuideDirB(v){
+  guideDirBSt=v;
+  ['left','right','both'].forEach(k=>document.getElementById('gdb-'+k).classList.toggle('act-in',v===k));
+}
+function setGuideInstallPos(v){
+  guideInstallPosSt=v;
+  ['ceil','wall','hang'].forEach(k=>document.getElementById('gip-'+k).classList.toggle('act-in',v===k));
+  const hangField=document.getElementById('guide-hang-field');
+  if(hangField)hangField.style.display=(v==='hang')?'block':'none';
+}
+function setGuideSizeShape(v){
+  guideSizeSt=v;
+  const isRect=v==='rect';const isCirc=v==='circ';
+  document.getElementById('gsz-rect-fields').style.display=isRect?'block':'none';
+  document.getElementById('gsz-circ-fields').style.display=isCirc?'block':'none';
+  document.getElementById('gsz-rect-btn').classList.toggle('act-in',isRect);
+  document.getElementById('gsz-circ-btn').classList.toggle('act-in',isCirc);
+}
+function setEmgMount(v){
+  emgMountSt=v;
+  document.getElementById('em-embed').classList.toggle('act-in',v==='embed');
+  document.getElementById('em-direct').classList.toggle('act-in',v==='direct');
+}
+function setEmgWatt(v){
+  emgWattSt=v;
+  ['9','13','oth'].forEach(k=>{document.getElementById('ew-'+k).classList.toggle('act-in',v===(k==='oth'?'other':k));});
+  document.getElementById('ew-other-cmt').classList.toggle('show',v==='other');
+}
+function setEmgWater(v){
+  emgWaterSt=v;
+  document.getElementById('ewater-dry').classList.toggle('act-in',v==='dry');
+  document.getElementById('ewater-wet').classList.toggle('act-in',v==='wet');
+}
+function setEmgSize(v){
+  emgSizeSt=v;
+  ['100','150','200','oth'].forEach(k=>{document.getElementById('esz-'+k).classList.toggle('act-in',v===(k==='oth'?'other':k));});
+  document.getElementById('esz-other-cmt').classList.toggle('show',v==='other');
+}
+function setLedSt(v){
+  ledSt=ledSt===v?'':v;
+  document.getElementById('c-led').classList.toggle('act-in',ledSt==='led');
+  document.getElementById('c-lled').classList.toggle('act-in',ledSt==='lled');
+  document.getElementById('led-detail').style.display=ledSt==='led'?'block':'none';
+  document.getElementById('lled-detail').style.display=ledSt==='lled'?'block':'none';
+}
+function setLedType(v){
+  ledTypeSt=v;
+  document.getElementById('led-ittai').classList.toggle('act-in',v==='ittai');
+  document.getElementById('led-lamp').classList.toggle('act-in',v==='lamp');
+  document.getElementById('led-ittai-fields').style.display=v==='ittai'?'block':'none';
+  document.getElementById('led-lamp-fields').style.display=v==='lamp'?'block':'none';
+}
+function setBypass(v){
+  bypassSt=v;
+  ['no','done','none'].forEach(k=>document.getElementById('byp-'+k).classList.toggle('act-in',v===k));
+}
+function setSenyu(){
+  senyuSt=!senyuSt;
+  document.getElementById('senyu-btn').classList.toggle('act-in',senyuSt);
+  if(senyuSt){
+    fFloors.forEach(f=>{f.rows=[{id:nextMid++,mode:'専有回路',count:f.rows[0]?.count||'',timer:''}];});
+    renderFF();
+  }
+}
+function onSec(){
+  const v=gv('sec');
+  const isOther=v==='その他';
+  const isParking=v==='駐車場';
+  const subInline=document.getElementById('sec-sub');
+  const otherRow=document.getElementById('sec-other-row');
+  const parkingField=document.getElementById('parking-field');
+  if(isOther){
+    subInline.style.display='none';
+    otherRow.style.display='block';
+  } else {
+    subInline.style.display='';
+    otherRow.style.display='none';
+  }
+  if(parkingField)parkingField.style.display=isParking?'block':'none';
+}
+function getSec(){
+  const v=gv('sec');
+  if(v==='その他'){
+    const main=gv('sec-main'),sub=gv('sec-sub-other');
+    return [main,sub].filter(Boolean).join('　')||'その他';
+  }
+  return v;
+}
+function onShape(){const v=gv('shape');['c','s','r','f'].forEach(t=>document.getElementById('dim-'+t).classList.toggle('show',v===t));}
+function getDim(){
+  const v=gv('shape');
+  if(v==='c'){const out=gv('dphi-out'),inn=gv('dphi-in');let s=out?'Φ'+out+'mm':'';if(inn)s+='（内径Φ'+inn+'mm）';return s;}
+  if(v==='s'){const d=gv('dside'),mx=gv('dside-max');let s=d?'□'+d+'mm':'';if(mx)s+='（最大外径□'+mx+'mm）';return s;}
+  if(v==='r'){const h=gv('dh'),w=gv('dw'),mxh=gv('drect-max-h'),mxw=gv('drect-max-w');let s=[h?'縦'+h+'mm':'',w?'横'+w+'mm':''].filter(Boolean).join('×');const mxp=[mxh?'縦'+mxh+'mm':'',mxw?'横'+mxw+'mm':''].filter(Boolean).join('×');if(mxp)s+='（最大外径'+mxp+'）';return s;}
+  if(v==='f')return gv('dfree');
+  return '';
+}
+function getDv(){return{shape:gv('shape'),phiOut:gv('dphi-out'),phiIn:gv('dphi-in'),side:gv('dside'),sideMax:gv('dside-max'),dh:gv('dh'),dw:gv('dw'),rectMaxH:gv('drect-max-h'),rectMaxW:gv('drect-max-w'),free:gv('dfree')};}
+function tc(id){document.getElementById(id).classList.toggle('on');}
+function isOn(id){return document.getElementById(id).classList.contains('on');}
+function onCtChange(){/* ct moved to floor rows */}
+function defTimer(){return gv('t2s')&&gv('t2e')?'1':'';}
+function calcTot(rows){return rows.reduce((s,r)=>s+(parseInt(r.count)||0),0);}
+function flOpts(cur){
+  const from=gv('fl-from'),to=gv('fl-to');
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  let floorOpts=['屋上'];
+  if(from&&to){
+    const fi=all.indexOf(from),ti=all.indexOf(to);
+    if(fi>=0&&ti>=fi)floorOpts=all.slice(fi,ti+1).concat(['屋上']);
+  }
+  return `<option value="">フロアを選択</option>`+floorOpts.map(f=>`<option${cur===f?' selected':''}>${f}</option>`).join('');
+}
+
+function bothTimersSet(){return!!(gv('t1s')&&gv('t1e')&&gv('t2s')&&gv('t2e'));}
+function mOpts(cur){
+  const bt=bothTimersSet();
+  const modes=[];
+  MODES.forEach(m=>{
+    if(m==='タイマー'&&bt){modes.push('タイマー①');modes.push('タイマー②');}
+    else{modes.push(m);}
+  });
+  return`<option value="">点灯方式を選択</option>`+modes.map(m=>`<option${cur===m?' selected':''}>${m}</option>`).join('');
+}
+function onTimerChg(){
+  renderFF();
+  entries.forEach(e=>{if(openCards.has(e.id))renderEF(e.id);});
+}
+
+// mode row HTML （非混在モード用）
+function mrHtml(row,fid,eid){
+  const isE=eid!=null;
+  const rm=isE?`eRRow(${eid},${fid},${row.id})`:`fRRow(${fid},${row.id})`;
+  const mc=isE?`eMC(${eid},${fid},${row.id},this.value)`:`fMC(${fid},${row.id},this.value)`;
+  const cc=isE?`eCC(${eid},${fid},${row.id},this.value)`:`fCC(${fid},${row.id},this.value)`;
+  const cntId=`cnt-${row.id}`;
+  const plusFn=isE?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`:
+    `(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
+  const minusFn=isE?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`:
+    `(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
+  return`<div class="mode-row">
+    <select onchange="${mc}">${mOpts(row.mode)}</select>
+    <div class="cnt-wrap">
+      <button class="cnt-btn minus" onclick="${minusFn}">－</button>
+      <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="${cc}" style="width:48px;text-align:center">
+      <button class="cnt-btn plus" onclick="${plusFn}">＋</button>
+    </div>
+    <button class="btn btn-xs btn-red" onclick="${rm}">×</button>
+  </div>`;
+}
+
+// フロア行グループレンダリング（showCt=falseのとき色温度非表示）
+function renderFloorRows(rows,fid,eid,showCt=true){
+  // 同一modeの連続行をグループ化
+  const groups=[];
+  rows.forEach(row=>{
+    if(groups.length&&groups[groups.length-1].mode===row.mode){
+      groups[groups.length-1].rows.push(row);
+    }else{
+      groups.push({mode:row.mode,rows:[row]});
+    }
+  });
+  return groups.map(group=>{
+    const firstRow=group.rows[0];
+    const mode=group.mode;
+    const mcGrp=eid!=null?`eMCGroup(${eid},${fid},${firstRow.id},this.value)`:`fMCGroup(${fid},${firstRow.id},this.value)`;
+    const rmGrp=eid!=null?`eRModeGroup(${eid},${fid},${firstRow.id})`:`fRModeGroup(${fid},${firstRow.id})`;
+    const addClr=eid!=null?`eAddColorRow(${eid},${fid},${firstRow.id})`:`fAddColorRow(${fid},${firstRow.id})`;
+    let html=`<div class="mode-row" style="margin-bottom:2px">
+      <select onchange="${mcGrp}" style="flex:1;width:100%">${mOpts(mode)}</select>
+      <button class="btn btn-xs btn-red" onclick="${rmGrp}">×</button>
+    </div>`;
+    group.rows.forEach(row=>{
+      const cntId=`cnt-${row.id}`;
+      const cc=eid!=null?`eCC(${eid},${fid},${row.id},this.value)`:`fCC(${fid},${row.id},this.value)`;
+      const ctChg=eid!=null?`eRowCtChg(${eid},${fid},${row.id},this.value)`:`fRowCtChg(${fid},${row.id},this.value)`;
+      const rm=eid!=null?`eRRow(${eid},${fid},${row.id})`:`fRRow(${fid},${row.id})`;
+      const plusFn=eid!=null
+        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`
+        :`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
+      const minusFn=eid!=null
+        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`
+        :`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
+      if(showCt){
+        const ctOpts=`<option value="">色温度</option><option${row.ct==='昼白色'?' selected':''}>昼白色</option><option${row.ct==='白色'?' selected':''}>白色</option><option${row.ct==='昼光色'?' selected':''}>昼光色</option><option${row.ct==='電球色'?' selected':''}>電球色</option><option${row.ct==='不明'?' selected':''}>不明</option>`;
+        html+=`<div class="mode-row" style="margin-bottom:2px;padding-left:4px">
+          <select onchange="${ctChg}" style="flex:none;width:100px;font-size:13px">${ctOpts}</select>
+          <div class="cnt-wrap">
+            <button class="cnt-btn minus" onclick="${minusFn}">－</button>
+            <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="${cc}" style="width:48px;text-align:center">
+            <button class="cnt-btn plus" onclick="${plusFn}">＋</button>
+          </div>
+          ${group.rows.length>1?`<button class="btn btn-xs btn-red" onclick="${rm}" style="margin-left:2px">×</button>`:''}
+        </div>`;
+      } else {
+        html+=`<div class="mode-row" style="margin-bottom:2px;padding-left:4px">
+          <div class="cnt-wrap">
+            <button class="cnt-btn minus" onclick="${minusFn}">－</button>
+            <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="${cc}" style="width:48px;text-align:center">
+            <button class="cnt-btn plus" onclick="${plusFn}">＋</button>
+          </div>
+          ${group.rows.length>1?`<button class="btn btn-xs btn-red" onclick="${rm}" style="margin-left:2px">×</button>`:''}
+        </div>`;
+      }
+    });
+    if(showCt)html+=`<button class="add-mode-btn" style="padding-left:8px;margin-bottom:6px" onclick="${addClr}">＋ 色温度を追加</button>`;
+    return html;
+  }).join('');
+}
+
+// ── フォーム：フロア管理 ──
+function initFlTo(){
+  const from=gv('fl-from');
+  const toSel=document.getElementById('fl-to');
+  toSel.innerHTML='<option value="">最高階</option>';
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  const fi=from?all.indexOf(from):0;
+  all.slice(Math.max(fi,0)).forEach(f=>toSel.innerHTML+=`<option>${f}</option>`);
+}
+function addFF(){
+  const from=gv('fl-from'),to=gv('fl-to');
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  let floorList=[];
+  if(from&&to){
+    const fi=all.indexOf(from),ti=all.indexOf(to);
+    if(fi>=0&&ti>=fi)floorList=all.slice(fi,ti+1);
+  }
+  if(floorList.length>0){
+    const lastF=fFloors.length?fFloors[fFloors.length-1]:null;
+    floorList.forEach(fl=>{
+      if(fFloors.some(f=>f.floor===fl))return;
+      const baseRows=senyuSt?[{id:nextMid++,mode:'専有回路',count:'',timer:'',ct:''}]:
+        lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):
+        [{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
+      fFloors.push({id:nextFid++,floor:fl,rows:baseRows,memo:''});
+    });
+  } else {
+    const lastF=fFloors.length?fFloors[fFloors.length-1]:null;
+    const newRows=senyuSt?[{id:nextMid++,mode:'専有回路',count:'',timer:'',ct:''}]:
+      lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):
+      [{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
+    fFloors.push({id:nextFid++,floor:'',rows:newRows,memo:''});
+  }
+  renderFF();
+  setTimeout(()=>{const l=document.querySelector('#f-floors .fl-block:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+}
+function addOneFF(){
+  if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
+  fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''});
+  renderFF();
+  setTimeout(()=>{const l=document.querySelector('#f-floors .fl-block:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+}
+function addOneFFAfter(fid){
+  if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
+  const idx=fFloors.findIndex(f=>f.id===fid);
+  const newFloor={id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''};
+  if(idx>=0)fFloors.splice(idx+1,0,newFloor);else fFloors.push(newFloor);
+  renderFF();
+  setTimeout(()=>{const blocks=document.querySelectorAll('#f-floors .fl-block');const ni=idx>=0?idx+1:fFloors.length-1;if(blocks[ni])blocks[ni].scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+}
+function applyAllSame(checked){
+  if(!checked)return;
+  if(!fFloors.length)return;
+  if(!confirm('階数以外が自動で全て同じ項目になり戻せませんが本当によろしいですか?')){
+    document.getElementById('all-same-chk').checked=false;
+    return;
+  }
+  const baseRows=fFloors[0].rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  fFloors.forEach((f,i)=>{if(i>0)f.rows=baseRows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));});
+  renderFF();
+}
+function fRFloor(fid){fFloors=fFloors.filter(f=>f.id!==fid);renderFF();}
+function fFloorChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.floor=v;}
+function fMemoChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.memo=v;}
+function fAddRow(fid){const f=fFloors.find(f=>f.id===fid);if(f){const newMode=senyuSt?'専有回路':'';f.rows.push({id:nextMid++,mode:newMode,count:'',timer:defTimer(),ct:''});}renderFF();}
+// 色温度追加：firstRowIdで同グループのmodeを取得して追加
+function fAddColorRow(fid,firstRowId){
+  const f=fFloors.find(f=>f.id===fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);
+  const mode=ref?ref.mode:'';
+  // グループ内最後の行の直後に挿入
+  const lastIdx=f.rows.reduce((li,r,i)=>r.mode===mode?i:li,-1);
+  const newRow={id:nextMid++,mode:mode,count:'',timer:defTimer(),ct:''};
+  if(lastIdx>=0)f.rows.splice(lastIdx+1,0,newRow);else f.rows.push(newRow);
+  renderFF();
+}
+function eAddColorRow(eid,fid,firstRowId){
+  const f=findF(eid,fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);
+  const mode=ref?ref.mode:'';
+  const lastIdx=f.rows.reduce((li,r,i)=>r.mode===mode?i:li,-1);
+  const newRow={id:nextMid++,mode:mode,count:'',timer:'',ct:''};
+  if(lastIdx>=0)f.rows.splice(lastIdx+1,0,newRow);else f.rows.push(newRow);
+  renderEF(eid);
+}
+// グループ全削除（firstRowIdと同じmodeの行を全て削除）
+function fRModeGroup(fid,firstRowId){
+  const f=fFloors.find(f=>f.id===fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);
+  const mode=ref?ref.mode:'__none__';
+  f.rows=f.rows.filter(r=>r.mode!==mode);
+  if(!f.rows.length)f.rows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
+  renderFF();
+}
+function eRModeGroup(eid,fid,firstRowId){
+  const f=findF(eid,fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);
+  const mode=ref?ref.mode:'__none__';
+  f.rows=f.rows.filter(r=>r.mode!==mode);
+  if(!f.rows.length)f.rows=[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];
+  renderEF(eid);
+}
+// グループ全行のmode一括変更
+function autoTimer(v){return v==='タイマー①'?'1':v==='タイマー②'?'2':undefined;}
+function fMCGroup(fid,firstRowId,v){
+  const f=fFloors.find(f=>f.id===fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);if(!ref)return;
+  const oldMode=ref.mode;
+  const t=autoTimer(v);
+  f.rows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});
+  renderFF();
+}
+function eMCGroup(eid,fid,firstRowId,v){
+  const f=findF(eid,fid);if(!f)return;
+  const ref=f.rows.find(r=>r.id===firstRowId);if(!ref)return;
+  const oldMode=ref.mode;
+  const t=autoTimer(v);
+  f.rows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});
+  renderEF(eid);
+}
+function fRRow(fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=fFloors.find(f=>f.id===fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderFF();}
+function fMC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r){r.mode=v;const t=autoTimer(v);if(t!==undefined)r.timer=t;renderFF();}}
+// 色温度変更（行単位）
+function fRowCtChg(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r)r.ct=v;}
+function eRowCtChg(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r)r.ct=v;}
+// フロアコピー（階数以外をコピーして下に追加）
+function fCopyFloor(fid){
+  const f=fFloors.find(f=>f.id===fid);if(!f)return;
+  const newRows=f.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  const idx=fFloors.findIndex(f=>f.id===fid);
+  fFloors.splice(idx+1,0,{id:nextFid++,floor:'',rows:newRows,memo:f.memo});
+  renderFF();
+  setTimeout(()=>{const blocks=document.querySelectorAll('#f-floors .fl-block');if(blocks[idx+1])blocks[idx+1].scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+}
+function eCopyFloor(eid,fid){
+  const e=findE(eid);if(!e)return;
+  const f=e.floors.find(f=>f.id===fid);if(!f)return;
+  const newRows=f.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  const idx=e.floors.findIndex(f=>f.id===fid);
+  e.floors.splice(idx+1,0,{id:nextFid++,floor:'',rows:newRows,memo:f.memo});
+  renderEF(eid);
+}
+function fCC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r){r.count=v;const el=document.getElementById(`ftot-${fid}`);if(el)el.textContent='合計：'+calcTot(f.rows)+'台';}}
+function fTC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r)r.timer=v;}
+
+function updateRegBtn(){
+  const btn=document.getElementById('reg-btn');if(!btn)return;
+  if(fFloors.length){
+    btn.disabled=false;btn.style.opacity='';btn.style.cursor='';
+    btn.textContent='✓ この器具を登録する';
+  } else {
+    btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';
+    btn.textContent='✓ この器具を登録する（フロアを追加してください）';
+  }
+}
+function renderFF(){
+  const c=document.getElementById('f-floors'),nm=document.getElementById('f-no-fl');
+  if(!fFloors.length){c.innerHTML='';nm.style.display='block';updateRegBtn();return;}
+  nm.style.display='none';
+  const isEonly=fixTypeSt==='eonly';
+  const isGuide=fixTypeSt==='guide';
+  c.innerHTML=fFloors.map(f=>{
+    const row=f.rows[0]||{id:nextMid++,mode:'',count:'',timer:'',ct:''};
+    if(isEonly||isGuide){
+      const cntId=`cnt-${row.id}`;
+      return`<div class="fl-block">
+        <div class="fl-head">
+          <select onchange="fFloorChg(${f.id},this.value)">
+            ${flOpts(f.floor)}
+          </select>
+          <div class="cnt-wrap">
+            <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${f.id},${row.id},String(v));})()">－</button>
+            <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="fCC(${f.id},${row.id},this.value)" style="width:48px;text-align:center">
+            <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${f.id},${row.id},String(v));})()">＋</button>
+          </div>
+          <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
+        </div>
+        <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)}台</div>
+        <input type="text" value="${f.memo}" placeholder="備考・特記"
+          style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
+          oninput="fMemoChg(${f.id},this.value)">
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-sm" style="flex:1;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:8px;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="fCopyFloor(${f.id})">＋この情報をコピーしてフロア追加</button>
+          <button class="btn btn-sm btn-blue" style="flex:1;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="addOneFFAfter(${f.id})">＋新規フロアを追加</button>
+        </div>
+      </div>`;
+    }
+    return`<div class="fl-block">
+      <div class="fl-head">
+        <select onchange="fFloorChg(${f.id},this.value)">
+          ${flOpts(f.floor)}
+        </select>
+        <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
+      </div>
+      ${renderFloorRows(f.rows,f.id,null,!isGuide)}
+      <button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button>
+      <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)}台</div>
+      <input type="text" value="${f.memo}" placeholder="備考・特記（例：1台器具破損あり）"
+        style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
+        oninput="fMemoChg(${f.id},this.value)">
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-sm" style="flex:1;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:8px;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="fCopyFloor(${f.id})">＋この情報をコピーしてフロア追加</button>
+        <button class="btn btn-sm btn-blue" style="flex:1;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="addOneFFAfter(${f.id})">＋新規フロアを追加</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateRegBtn();
+}
+
+// ── エントリー登録 ──
+function regEntry(){
+  const now=Date.now();if(now-_lastRegMs<800)return;_lastRegMs=now;
+  const sec=getSec(),name=gv('fname');
+  const secSub=gv('sec')!=='その他'?gv('sec-sub'):'';
+  const fullSection=secSub?sec+'　'+secSub:sec;
+  if(!sec){toast('設置場所を選択してください','err');return;}
+  if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){toast('照明名称を入力してください','err');return;}
+  if(!fFloors.length){toast('フロア情報を追加してください','err');return;}
+  const isEonly=fixTypeSt==='eonly';
+  for(const f of fFloors){
+    if(!f.floor){toast('フロアが未選択の項目があります','err');return;}
+  }
+  const emgSize=emgSizeSt==='other'?('Φ'+gv('esz-other-v')):emgSizeSt?'Φ'+emgSizeSt:'';
+  const emgWatt=emgWattSt==='other'?gv('ew-other-v').replace(/W$/i,''):(emgWattSt?emgWattSt:'');
+  const fix={name,fixType:fixTypeSt,
+    lamp:isEonly?'':gv('lamp'),ct:'',watt:isEonly?emgWatt:gv('watt'),
+    dim:isEonly?emgSize:getDim(),dv:isEonly?null:getDv(),
+    rain:isEonly?'':rainSt,rainC:isEonly?'':gv('rain-cmt-v'),
+    high:highSt,highC:gv('high-cmt-v'),
+    led:ledSt==='led',lled:ledSt==='lled',
+    ledModel:gv('led-model'),ledType:ledTypeSt,
+    ledWatt:gv('led-watt'),ledCt:gv('led-ct'),ledYear:gv('led-year'),
+    ledLwatt:gv('led-lwatt'),ledLct:gv('led-lct'),
+    bypass:bypassSt,
+    parkingNo:gv('parking-no'),
+    emgMount:isEonly?emgMountSt:'',emgWater:isEonly?emgWaterSt:'',
+    guide:fixTypeSt==='guide'?{led:guideLedSt,grade:guideGradeSt,kind:guideKindSt,panelColor:guidePanelColorSt,dir:guideDirSt,dirB:guideDirBSt,year:gv('guide-year'),installPos:guideInstallPosSt,hangH:gv('guide-hang-h'),sizeShape:guideSizeSt,sizeRectH:gv('gsz-rect-h'),sizeRectW:gv('gsz-rect-w'),sizeCircPhi:gv('gsz-circ-phi')}:null};
+  entries.push({id:nextId++,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors))});
+  fFloors=[];
+  const key=fix.name+'|'+fix.dim+'|'+fix.lamp;
+  if(!library.some(f=>f.name+'|'+f.dim+'|'+f.lamp===key))library.push(fix);
+  refreshLib();renderEntries();renderFF();clearForm();
+  document.getElementById('line-btn').disabled=false;
+  toast('登録しました！','ok');
+  document.getElementById('elist').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+const SEC_OPTS=['その他','外壁','通路','廊下','階段','エントランス','駐輪場','駐車場','屋上','機械室','風除室','管理室','館名盤上','AL盤上','外部植栽','外構部'];
+function editEntry(eid){
+  const e=findE(eid);if(!e)return;
+  if(SEC_OPTS.includes(e.section)){
+    document.getElementById('sec').value=e.section;
+    const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='none';
+    const ss=document.getElementById('sec-sub');if(ss)ss.style.display='';
+    document.getElementById('all-same-chk').checked=false;
+  } else {
+    document.getElementById('sec').value='その他';
+    const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='block';
+    const ss=document.getElementById('sec-sub');if(ss)ss.style.display='none';
+    const sm=document.getElementById('sec-main');if(sm)sm.value=e.section;
+  }
+  applyFix(e.fix);
+  fFloors=JSON.parse(JSON.stringify(e.floors));
+  entries=entries.filter(en=>en.id!==eid);
+  renderEntries();renderFF();
+  document.getElementById('line-btn').disabled=!entries.length;
+  document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('編集モード：変更後に「この器具を登録する」を押してください','ok');
+}
+
+function clearForm(){
+  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','rain-cmt-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('all-same-chk').checked=false;
+  document.getElementById('parking-field').style.display='none';
+  const otherRow=document.getElementById('sec-other-row');if(otherRow)otherRow.style.display='none';
+  const secSubEl=document.getElementById('sec-sub');if(secSubEl)secSubEl.style.display='';
+  document.getElementById('shape').value='';onShape();
+  setRain('');setHigh('');
+  senyuSt=false;
+  ['senyu-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  document.querySelectorAll('.lib-item').forEach(el=>el.classList.remove('sel'));
+  setFixType('');
+  ['em-embed','em-direct','ew-9','ew-13','ew-oth','ewater-dry','ewater-wet','esz-100','esz-150','esz-200','esz-oth'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  emgMountSt='';emgWattSt='';emgWaterSt='';emgSizeSt='';
+  document.getElementById('ew-other-cmt').classList.remove('show');
+  document.getElementById('esz-other-cmt').classList.remove('show');
+  document.getElementById('ew-other-v').value='';
+  document.getElementById('esz-other-v').value='';
+  ledSt='';ledTypeSt='';bypassSt='';
+  ['c-led','c-lled','led-ittai','led-lamp','byp-no','byp-done','byp-none'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  ['led-detail','lled-detail','led-lamp-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const ledIttaiEl=document.getElementById('led-ittai-fields');if(ledIttaiEl)ledIttaiEl.style.display='block';
+  ['led-model','led-watt','led-ct','led-year','led-lwatt','led-lct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  // 誘導灯リセット
+  guideLedSt='';guideGradeSt='';guideKindSt='';guidePanelColorSt='';guideDirSt='';guideDirBSt='';guideInstallPosSt='';guideSizeSt='';
+  ['guide-led-btn','gg-c','gg-bl','gg-bh','gg-a','gt-single','gt-double','gp-green','gp-white','gd-left','gd-right','gd-both','gdb-left','gdb-right','gdb-both','gip-ceil','gip-wall','gip-hang','gsz-rect-btn','gsz-circ-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  const gnl=document.getElementById('guide-non-led');if(gnl)gnl.style.display='block';
+  const gld=document.getElementById('guide-led-detail');if(gld)gld.style.display='none';
+  const gdbf=document.getElementById('guide-dir-b-field');if(gdbf)gdbf.style.display='none';
+  const gdlbl=document.getElementById('guide-dir-label');if(gdlbl)gdlbl.textContent='人の向き';
+  const gyEl=document.getElementById('guide-year');if(gyEl)gyEl.value='';
+  const ghf=document.getElementById('guide-hang-field');if(ghf)ghf.style.display='none';
+  ['guide-hang-h','gsz-rect-h','gsz-rect-w','gsz-circ-phi'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['gsz-rect-fields','gsz-circ-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const gszSec=document.getElementById('guide-size-section');if(gszSec)gszSec.style.display='block';
+  fFloors=[];renderFF();
+}
+
+// ── エントリー：インライン編集 ──
+function findE(eid){return entries.find(e=>e.id===eid);}
+function findF(eid,fid){return findE(eid)?.floors.find(f=>f.id===fid);}
+function findR(eid,fid,mid){return findF(eid,fid)?.rows.find(r=>r.id===mid);}
+
+function eMC(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r){r.mode=v;const t=autoTimer(v);if(t!==undefined)r.timer=t;renderEF(eid);}}
+function eCC(eid,fid,mid,v){const f=findF(eid,fid),r=findR(eid,fid,mid);if(r){r.count=v;const el=document.getElementById(`etot-${eid}-${fid}`);if(el&&f)el.textContent='合計：'+calcTot(f.rows)+'台';}}
+function eTC(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r)r.timer=v;}
+function eFlChg(eid,fid,v){const f=findF(eid,fid);if(f)f.floor=v;}
+function eMemoChg(eid,fid,v){const f=findF(eid,fid);if(f)f.memo=v;}
+function eAddRow(eid,fid){const f=findF(eid,fid);if(f)f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);}
+function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderEF(eid);}
+function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:''});}renderEF(eid);}
+function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
+function delEntry(id){
+  entries=entries.filter(e=>e.id!==id);
+  // 残エントリーからlibrary再構築（削除された器具仕様を除外）
+  library=[];
+  entries.forEach(e=>{const fix=e.fix;const key=fix.name+'|'+fix.dim+'|'+fix.lamp;if(!library.some(l=>l.name+'|'+l.dim+'|'+l.lamp===key))library.push(fix);});
+  renderEntries();refreshLib();
+  document.getElementById('line-btn').disabled=!entries.length;
+}
+function copyEntry(eid){
+  const e=findE(eid);if(!e)return;
+  applyFix(e.fix);
+  document.getElementById('sec').value='';
+  const _ot=document.getElementById('sec-other-row');if(_ot)_ot.style.display='none';
+  const _ss=document.getElementById('sec-sub');if(_ss)_ss.style.display='';
+  document.getElementById('all-same-chk').checked=false;
+  fFloors=[];renderFF();
+  document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('器具仕様をコピーしました。場所・フロアを入力して登録してください','ok');
+}
+
+function renderEF(eid){
+  const e=findE(eid),el=document.getElementById(`efl-${eid}`);
+  if(!e||!el)return;
+  const isEonly=e.fix?.fixType==='eonly';
+  const isEGuide=e.fix?.fixType==='guide';
+  el.innerHTML=e.floors.map(f=>{
+    const row=f.rows[0]||{id:nextMid++,mode:'',count:'',timer:'',ct:''};
+    if(isEonly||isEGuide){
+      const cntId=`cnt-${row.id}`;
+      return`<div class="efl-block">
+        <div class="efl-head">
+          <select onchange="eFlChg(${eid},${f.id},this.value)">
+            ${flOpts(f.floor)}
+          </select>
+          <div class="cnt-wrap">
+            <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">－</button>
+            <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="eCC(${eid},${f.id},${row.id},this.value)" style="width:48px;text-align:center">
+            <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">＋</button>
+          </div>
+          <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
+        </div>
+        <input type="text" value="${f.memo}" placeholder="備考・特記"
+          style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
+          oninput="eMemoChg(${eid},${f.id},this.value)">
+      </div>`;
+    }
+    return`<div class="efl-block">
+      <div class="efl-head">
+        <select onchange="eFlChg(${eid},${f.id},this.value)">
+          ${flOpts(f.floor)}
+        </select>
+        <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
+      </div>
+      ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
+      <button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button>
+      <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)}台</div>
+      <input type="text" value="${f.memo}" placeholder="備考・特記"
+        style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
+        oninput="eMemoChg(${eid},${f.id},this.value)">
+      <button class="btn btn-sm" style="width:100%;margin-top:8px;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:8px;font-size:12px;padding:6px 10px;touch-action:manipulation" onclick="eCopyFloor(${eid},${f.id})">📋 このフロア情報をコピーして追加</button>
+    </div>`;
+  }).join('');
+}
+
+function refreshLib(){
+  const sec=document.getElementById('lib-sec');
+  const grid=document.getElementById('lib-grid');
+  if(!sec||!grid)return;
+  if(!library.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  grid.innerHTML=library.map((f,i)=>{
+    const sub=[f.dim,f.lamp,f.watt?f.watt+'W':''].filter(Boolean).join(' ');
+    return`<div class="lib-item" id="lib-${i}" onclick="useLib(${i})">
+      <div class="ln">${getDisplayName(f)||'（名称なし）'}</div>
+      ${sub?`<div class="ls">${sub}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function useLib(idx){
+  const f=library[idx];if(!f)return;
+  applyFix(f);
+  document.querySelectorAll('.lib-item').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+}
+function applyFix(fix){
+  const el=id=>document.getElementById(id);
+  const sv=(id,v)=>{const e=el(id);if(e)e.value=v||'';};
+  setFixType(fix.fixType||'');
+  const isEonly=fix.fixType==='eonly';
+  sv('fname',fix.name);
+  if(!isEonly){
+    sv('lamp',fix.lamp);sv('watt',fix.watt);
+    const dv=fix.dv||{};
+    sv('shape',dv.shape);onShape();
+    sv('dphi-out',dv.phiOut);sv('dphi-in',dv.phiIn);
+    sv('dside',dv.side);sv('dside-max',dv.sideMax);
+    sv('dh',dv.dh);sv('dw',dv.dw);sv('drect-max-h',dv.rectMaxH);sv('drect-max-w',dv.rectMaxW);
+    sv('dfree',dv.free);
+    setRain(fix.rain||'');sv('rain-cmt-v',fix.rainC);
+  }
+  setHigh(fix.high||'');sv('high-cmt-v',fix.highC);
+  if(fix.led)setLedSt('led');else if(fix.lled)setLedSt('lled');else setLedSt('');
+  if(fix.ledType)setLedType(fix.ledType);
+  sv('led-model',fix.ledModel);sv('led-watt',fix.ledWatt);sv('led-ct',fix.ledCt);
+  sv('led-year',fix.ledYear);sv('led-lwatt',fix.ledLwatt);sv('led-lct',fix.ledLct);
+  if(fix.bypass)setBypass(fix.bypass);
+  sv('parking-no',fix.parkingNo);
+  const pkf=el('parking-field');if(pkf)pkf.style.display=gv('sec')==='駐車場'?'block':'none';
+  if(isEonly){
+    if(fix.emgMount)setEmgMount(fix.emgMount);
+    if(fix.emgWater)setEmgWater(fix.emgWater);
+    if(fix.watt){
+      const w=String(fix.watt).replace('W','');
+      if(w==='9'||w==='13')setEmgWatt(w);
+      else{setEmgWatt('other');sv('ew-other-v',w);}
+    }
+    if(fix.dim){
+      const phi=String(fix.dim).replace('Φ','').replace('mm','');
+      if(phi==='100'||phi==='150'||phi==='200')setEmgSize(phi);
+      else if(phi){setEmgSize('other');sv('esz-other-v',phi);}
+    }
+  }
+}
+function getDisplayName(fix){
+  if(fix.fixType==='eonly'){
+    const mt={embed:'埋込',direct:'直付','':''}[fix.emgMount]||'';
+    return mt+'非常専用照明';
+  }
+  if(fix.fixType==='guide'){
+    if(fix.guide?.led)return 'LED誘導灯';
+    const grMap={C:'C級(FL10)',BL:'BL級(FL20)',BH:'BH級(FL40)',A:'A級(FL40×2)'};
+    const knMap={single:'片面',double:'両面'};
+    const gr=grMap[fix.guide?.grade||'']||'';
+    const kn=knMap[fix.guide?.kind||'']||'';
+    return gr+kn+'誘導灯';
+  }
+  return fix.name||'';
+}
+function renderEntries(){
+  const list=document.getElementById('elist');
+  document.getElementById('ecnt').textContent=entries.length;
+  if(!entries.length){list.innerHTML='<div class="empty">まだ登録されていません</div>';return;}
+  list.innerHTML=entries.map(e=>{
+    const f=e.fix;
+    const tags=[];
+    if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
+    else if(f.rain==='in')tags.push('<span class="tag t-ins">雨線内</span>');
+    if(f.high==='yes')tags.push('<span class="tag t-high">高所あり</span>');
+    if(f.led){tags.push('<span class="tag t-led">LED器具</span>');}
+    if(f.lled){tags.push('<span class="tag t-led">旧LEDランプ</span>');}
+    const spec=[f.dim,f.lamp,f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
+    return`<div class="ecard">
+      <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
+        <div class="ec-left">
+          <span class="ec-no">No.${e.id}</span><span class="ec-sec">${e.section}</span>
+          <div class="ec-name">${getDisplayName(f)}</div>
+          ${spec?`<div class="ec-spec">${spec}</div>`:''}
+          ${tags.length?`<div style="margin-top:4px">${tags.join('')}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <span style="font-size:18px;color:#a0aec0" id="ecard-arrow-${e.id}">▶</span>
+          <button class="btn btn-sm btn-blue" onclick="event.stopPropagation();editEntry(${e.id})">✏️ 仕様を編集</button>
+          <button class="btn btn-sm btn-red" onclick="event.stopPropagation();confirmDel(${e.id})">削除</button>
+        </div>
+      </div>
+      <div class="ec-body" id="ecbody-${e.id}" style="display:none">
+        <div id="efl-${e.id}"></div>
+        <div class="ec-footer">
+          <button class="btn btn-sm btn-blue" onclick="eAddFloor(${e.id})">＋ フロアを追加</button>
+          <button class="btn btn-sm btn-orange" onclick="copyEntry(${e.id})">📋 この仕様をコピーして新規追加</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  entries.forEach(e=>{if(openCards.has(e.id)){renderEF(e.id);document.getElementById(`ecbody-${e.id}`).style.display='block';document.getElementById(`ecard-arrow-${e.id}`).textContent='▼';}});
+}
+function toggleECard(eid){
+  const body=document.getElementById(`ecbody-${eid}`);
+  const arrow=document.getElementById(`ecard-arrow-${eid}`);
+  if(!body)return;
+  const open=body.style.display==='none'||body.style.display==='';
+  body.style.display=open?'block':'none';
+  if(arrow)arrow.textContent=open?'▼':'▶';
+  if(open){openCards.add(eid);renderEF(eid);}else{openCards.delete(eid);}
+}
+
+// ── Excel出力 ──
+function doExport(){
+  if(!entries.length)return;
+  const wb=XLSX.utils.book_new();
+  const bldg=gv('bldg')||'（未入力）';
+  const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
+  const hn=gv('hn');
+  const dbL={'common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
+  const dbC=gv('db-cmt-v');
+
+  const ws={};
+  const COLS=12;
+  function sc(r,c,v){ws[XLSX.utils.encode_cell({r,c})]={v,t:typeof v==='number'?'n':'s'};}
+
+  sc(0,0,'物件名：');sc(0,1,bldg);
+  if(t1s&&t1e){sc(0,4,'タイマー①：');sc(0,5,t1s+'〜'+t1e);}
+  if(t2s&&t2e){sc(1,4,'タイマー②：');sc(1,5,t2s+'〜'+t2e);}
+  if(hn){sc(0,7,'高所脚立以外：');sc(0,8,hn);}
+  if(dbL){sc(1,7,'分電盤解錠：');sc(1,8,dbL+(dbC?'（'+dbC+'）':''));}
+
+  const RN=3,RS=4,RNM=5,RD=6,RL=7,RW=8,RR=9,RH=10,RLED=11,RFLH=13,RFL=14;
+  const FLS=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  const RMEMO=RFL+FLS.length;
+  [['番号',RN],['設置場所',RS],['照明名称',RNM],['器具寸法',RD],['ランプ種別',RL],['消費電力/色温度',RW],['雨線',RR],['高所作業',RH],['LED状態',RLED],['点灯方式記入',RFLH],['備考',RMEMO]].forEach(([v,r])=>sc(r,0,v));
+  FLS.forEach((fl,i)=>sc(RFL+i,0,fl));
+
+  const merges=[];
+  function mg(r1,c1,r2,c2){merges.push({s:{r:r1,c:c1},e:{r:r2,c:c2}});}
+
+  entries.forEach((ent,idx)=>{
+    const col=1+idx*COLS,ec=col+COLS-1,f=ent.fix;
+    sc(RN,col,idx+1);
+    sc(RS,col,ent.section);mg(RS,col,RS,ec);
+    sc(RNM,col,getDisplayName(f));mg(RNM,col,RNM,ec);
+    sc(RD,col,f.dim||'');mg(RD,col,RD,ec);
+    sc(RL,col,f.lamp||'');mg(RL,col,RL,ec);
+    sc(RW,col,[f.watt?f.watt+'W':'',f.ct].filter(Boolean).join(' / '));mg(RW,col,RW,ec);
+    const rr={in:'雨線内',out:'雨線外',unk:'未確認','':'―'}[f.rain]||'―';
+    sc(RR,col,rr+(f.rainC?'（'+f.rainC+'）':''));mg(RR,col,RR,ec);
+    const hr={yes:'あり',no:'なし','':'―'}[f.high]||'―';
+    sc(RH,col,hr+(f.highC?'（'+f.highC+'）':''));mg(RH,col,RH,ec);
+    const lr=[f.led?'LED器具':'',f.lled?'旧器具LEDランプ':''].filter(Boolean).join('　')||'なし';
+    sc(RLED,col,lr);mg(RLED,col,RLED,ec);
+    sc(RFLH,col,'');mg(RFLH,col,RFLH,ec);
+    FLS.forEach((fl,fi)=>{
+      const fe=ent.floors.find(fe=>fe.floor===fl);
+      let val='';
+      if(fe){
+        const t1str=(gv('t1s')&&gv('t1e'))?gv('t1s')+'〜'+gv('t1e'):'';
+        const t2str=(gv('t2s')&&gv('t2e'))?gv('t2s')+'〜'+gv('t2e'):'';
+        const ms=fe.rows.map(r=>{
+          let lbl=r.mode;
+          if(r.mode==='タイマー'){lbl=(r.timer==='2'?'タイマー②':'タイマー①');const ts=r.timer==='2'?t2str:t1str;if(ts)lbl+='('+ts+')';}
+          return lbl+(r.count?'×'+r.count+'台':'');
+        }).join('、');
+        val=ms+'\n合計：'+calcTot(fe.rows)+'台';
+        if(fe.memo)val+='\n※'+fe.memo;
+      }
+      sc(RFL+fi,col,val);mg(RFL+fi,col,RFL+fi,ec);
+    });
+    sc(RMEMO,col,'');mg(RMEMO,col,RMEMO,ec);
+  });
+
+  const lc=entries.length*COLS;
+  ws['!ref']=XLSX.utils.encode_range({r:0,c:0},{r:RMEMO,c:lc});
+  ws['!merges']=merges;
+  ws['!cols']=[{wch:16}].concat(Array.from({length:entries.length*COLS},(_,i)=>({wch:i%COLS===0?22:3})));
+  ws['!rows']=Array.from({length:RMEMO+1},(_,i)=>({hpt:i>=RFL&&i<RFL+FLS.length?22:i===RMEMO?50:18}));
+  XLSX.utils.book_append_sheet(wb,ws,'調査シート');
+
+  // Sheet2: データ一覧
+  const hdrs=['No.','セクション','照明名称','器具寸法','ランプ種別','色温度','消費電力(W)','雨線','雨線備考','高所作業','高所備考','LED状態','フロア','点灯方式','台数','タイマー時間','備考'];
+  const rows=[];
+  entries.forEach((ent,idx)=>{
+    const f=ent.fix;
+    const rl={in:'雨線内',out:'雨線外',unk:'未確認','':''}[f.rain]||'';
+    const hl={yes:'あり',no:'なし','':''}[f.high]||'';
+    const ls=[f.led?'LED器具':'',f.lled?'旧器具LEDランプ':''].filter(Boolean).join('／')||'なし';
+    ent.floors.forEach(fl=>{
+      fl.rows.forEach(r=>{
+        const t1s2=gv('t1s'),t1e2=gv('t1e'),t2s2=gv('t2s'),t2e2=gv('t2e');
+        const timerLbl=r.mode==='タイマー'?(r.timer==='2'?'タイマー②':'タイマー①'):'';
+        const timerTime=r.mode==='タイマー'?(r.timer==='2'&&t2s2&&t2e2?t2s2+'〜'+t2e2:(t1s2&&t1e2?t1s2+'〜'+t1e2:'')):'';
+        rows.push([idx+1,ent.section,f.name,f.dim||'',f.lamp||'',f.ct||'',f.watt||'',rl,f.rainC||'',hl,f.highC||'',ls,fl.floor,timerLbl||r.mode,r.count,timerTime,fl.memo]);
+      });
+    });
+  });
+  const ws2=XLSX.utils.aoa_to_sheet([hdrs,...rows]);
+  ws2['!cols']=[5,12,22,14,10,14,10,8,20,10,20,16,6,18,6,12,20].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws2,'データ一覧');
+
+  const d=new Date();
+  XLSX.writeFile(wb,`${bldg}_LED調査_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.xlsx`);
+  toast('Excelを保存しました！','ok');
+}
+
+// 色温度略称
+function shortCt(ct){const m={'昼白色':'昼白','白色':'白','昼光色':'昼光','電球色':'電球','不明':'不明','':''};return m[ct]||ct;}
+// LINE送信用の点灯方式を略称に変換
+function convMode(mode,timer){
+  const modeMap={
+    '自動点滅器（EE）':'EE',
+    '自動点滅器付き器具':'EE器具',
+    'タイマー':timer==='2'?'TM②':'TM①',
+    'スイッチ':'SW',
+    '常時点灯':'常時',
+    'ランプ抜き':'抜き',
+    'ランプ切れ':'切れ',
+    '建物側人感センサー':'人感(建物)',
+    '器具付人感センサー':'人感(器具)',
+    '専有回路':'専有'
+  };
+  return modeMap[mode]||mode;
+}
+
+// ── LINE送信 ──
+function doLineShare(){
+  if(!entries.length)return;
+  const bldg=gv('bldg')||'（未入力）';
+  const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
+  const hn=gv('hn');
+  const dbL={'common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
+  const dbC=gv('db-cmt-v');
+  const d=new Date();
+  const dateStr=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+
+  let txt=`【LED照明現地調査】\n`;
+  txt+=`📅 ${dateStr}\n`;
+  txt+=`🏢 物件名：${bldg}\n`;
+  if(t1s&&t1e)txt+=`⏰ タイマー①：${t1s}〜${t1e}\n`;
+  if(t2s&&t2e)txt+=`⏰ タイマー②：${t2s}〜${t2e}\n`;
+  if(hn)txt+=`🪜 高所脚立以外：${hn}\n`;
+  if(dbL)txt+=`🔑 分電盤解錠：${dbL}${dbC?'（'+dbC+'）':''}\n`;
+  const bldgMemo=gv('bldg-memo');
+  if(bldgMemo)txt+=`📝 備考：${bldgMemo}\n`;
+
+  entries.forEach((ent,idx)=>{
+    const f=ent.fix;
+    txt+=`\n━━━━━━━━━━\n`;
+    txt+=`【器具${idx+1}】${ent.section}　${getDisplayName(f)}\n`;
+    if(f.dim)txt+=`  寸法：${f.dim}\n`;
+    if(f.lamp)txt+=`  ランプ：${f.lamp}\n`;
+    if(f.watt)txt+=`  消費電力：${f.watt}W\n`;
+    // L3: 雨線は雨線外・未確認のみ表示
+    if(f.rain==='out'||f.rain==='unk'){
+      const rr={out:'雨線外',unk:'未確認','':''}[f.rain]||'';
+      txt+=`  雨線：${rr}${f.rainC?'（'+f.rainC+'）':''}\n`;
+    }
+    // L4: 高所作業はありのみ表示
+    if(f.high==='yes'){
+      txt+=`  高所作業：あり${f.highC?'（'+f.highC+'）':''}\n`;
+    }
+    const lr=[f.led?'LED器具':'',f.lled?'旧器具LEDランプ':''].filter(Boolean).join('／');
+    if(lr)txt+=`  LED状態：${lr}\n`;
+    ent.floors.forEach(fl=>{
+      if(!fl.floor)return;
+      const t1str=t1s&&t1e?t1s+'〜'+t1e:'';
+      const t2str=t2s&&t2e?t2s+'〜'+t2e:'';
+      const tot=calcTot(fl.rows);
+      const isEmgOnly=ent.fix.fixType==='eonly';
+      if(isEmgOnly){
+        txt+=`  📍${fl.floor}：合計${tot}台`;
+      } else {
+        // L2: 点灯方式を略称に変換（色温度も含む）
+        const ms=fl.rows.filter(r=>r.mode).map(r=>{
+          const lbl=convMode(r.mode,r.timer);
+          const ctLbl=r.ct?'['+shortCt(r.ct)+']':'';
+          return lbl+ctLbl+(r.count?'×'+r.count+'台':'');
+        }).join('/');
+        txt+=`  📍${fl.floor}：合計${tot}台（${ms}）`;
+      }
+      if(fl.memo)txt+=`　※${fl.memo}`;
+      txt+='\n';
+    });
+  });
+  txt+=`\n以上`;
+
+  const url='https://line.me/R/msg/text/?'+encodeURIComponent(txt);
+  location.href=url;
+  toast('LINEを開きます','ok');
+}
+
+function pad(n){return String(n).padStart(2,'0');}
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show '+type;
+  setTimeout(()=>{t.className='toast';},2600);
+}
+
+function initTimeSelects(){
+  // 開始時間: 16:00スタート（16:00〜翌15:50の順）
+  // 終了時間: 06:00スタート（06:00〜翌05:50の順）
+  function makeOpts(startH,startM){
+    let html='<option value="">--:--</option>';
+    let total=24*6; // 24h × 6 (10分刻み)
+    for(let i=0;i<total;i++){
+      const mins=(startH*60+startM+i*10)%(24*60);
+      const h=Math.floor(mins/60),m=mins%60;
+      const t=`${pad(h)}:${pad(m)}`;
+      html+=`<option value="${t}">${t}</option>`;
+    }
+    return html;
+  }
+  ['t1s','t2s'].forEach(id=>{const sel=document.getElementById(id);if(sel)sel.innerHTML=makeOpts(16,0);});
+  ['t1e','t2e'].forEach(id=>{const sel=document.getElementById(id);if(sel)sel.innerHTML=makeOpts(6,0);});
+}
+initTimeSelects();
+renderFF();
+</script>
+</body>
+</html>
