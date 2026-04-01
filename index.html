@@ -126,11 +126,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
   <div class="card-title">👤 調査実施者</div>
   <div class="r2">
     <div class="field">
-      <label>企業名</label>
+      <label>企業名<span class="req">*</span></label>
       <input type="text" id="surveyor-company" placeholder="例：株式会社〇〇">
     </div>
     <div class="field">
-      <label>氏名</label>
+      <label>氏名<span class="req">*</span></label>
       <input type="text" id="surveyor-name" placeholder="例：山田 太郎">
     </div>
   </div>
@@ -193,6 +193,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       </select>
     </div>
     <p style="font-size:11px;color:#718096;margin-top:4px;">※フロア選択肢の範囲を設定します</p>
+    <div id="fl-from-hint" style="display:none;color:#e53e3e;font-size:12px;margin-top:4px">⚠ 先に建物階数範囲を設定してください。※後から変更可能です。</div>
   </div>
   <div class="field">
     <label>建物備考</label>
@@ -217,7 +218,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div style="display:flex;gap:6px;align-items:center">
       <select id="sec" style="flex:1" onchange="onSec()">
         <option value="">選択してください</option>
-        <option>その他</option>
+        <option value="その他">自由記入</option>
         <option>外壁</option><option>通路</option><option>廊下</option><option>階段</option>
         <option>エントランス</option><option>風除室</option><option>駐輪場</option><option>駐車場</option>
         <option>屋上</option><option>機械室</option>
@@ -243,7 +244,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <label>器具種別</label>
     <div class="tgroup" style="flex-wrap:wrap">
       <button class="tbtn" id="ft-normal" onclick="setFixType('normal')">通常照明</button>
-      <button class="tbtn" id="ft-ecomb" onclick="setFixType('ecomb')">非常灯兼用</button>
+      <button class="tbtn" id="ft-ecomb" onclick="setFixType('ecomb')">非常灯兼用</button><button type="button" onclick="document.getElementById('ecomb-modal').style.display='flex'" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;color:#718096">❓</button>
       <button class="tbtn" id="ft-eonly" onclick="setFixType('eonly')">非常専用照明</button>
       <button class="tbtn" id="ft-guide" onclick="setFixType('guide')">誘導灯</button>
     </div>
@@ -397,7 +398,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
   <div class="field" id="fname-field" style="display:none">
     <label>照明名称<span class="req">*</span></label>
-    <input type="text" id="fname" placeholder="例：壁面ブラケット(A)、防犯灯">
+    <input type="text" id="fname" placeholder="例：20形蛍光灯、丸型ブラケット、庭園灯">
   </div>
 
   <div id="normal-fields" style="display:none">
@@ -409,6 +410,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
         <option value="s">正方形（□）</option>
         <option value="r">長方形</option>
         <option value="f">特殊形状・自由記入</option>
+        <option value="p">ポール</option>
       </select>
 
       <!-- 丸形 内径（必須）・外径 -->
@@ -458,6 +460,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
         <div style="font-size:12px;color:#718096;margin-bottom:4px">外径・サイズ</div>
         <input type="text" id="dfree" placeholder="例：125×270mm">
         <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※ダウンライトは外径必須。塗装やコーキングがある場合も隠せる外径を入力</div>
+      </div>
+
+      <!-- ポール -->
+      <div class="dim-blk" id="dim-p">
+        <div style="font-size:12px;color:#718096;margin-bottom:6px">ポール種別</div>
+        <div class="tgroup" style="margin-bottom:8px" id="pole-type-btns">
+          <button class="tbtn" id="pt-garden" onclick="setPoleType('garden')">庭園灯ポール</button>
+          <button class="tbtn" id="pt-pole" onclick="setPoleType('pole')">ポール灯</button>
+        </div>
+        <div id="pole-garden-fields" style="display:none">
+          <div class="uw" style="margin-bottom:6px">
+            <span class="unit" style="font-size:13px;font-weight:700;min-width:70px">ポール径</span>
+            <input type="number" id="dpole-d" placeholder="60"><span class="unit">mm</span>
+          </div>
+          <div class="uw">
+            <span class="unit" style="font-size:13px;font-weight:700;min-width:70px">ポール高</span>
+            <input type="number" id="dpole-h" placeholder="2000"><span class="unit">mm</span>
+          </div>
+        </div>
+        <div id="pole-pole-fields" style="display:none">
+          <div class="uw">
+            <span class="unit" style="font-size:13px;font-weight:700;min-width:70px">ポール径</span>
+            <input type="number" id="dpole-pd" placeholder="76"><span class="unit">mm</span>
+          </div>
+        </div>
       </div>
 
       <!-- 器具寸法専用備考 -->
@@ -511,22 +538,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
   </div>
 
-  <div id="high-field" style="display:none">
-    <div class="field">
-      <label>高所作業</label>
-      <div class="tgroup">
-        <button class="tbtn" id="high-yes" onclick="setHigh(highSt==='yes'?'':'yes')">あり</button>
-      </div>
-      <div class="cmt" id="high-cmt">
-        <div class="uw" style="margin-bottom:6px">
-          <input type="number" id="high-h-v" placeholder="約何メートル" style="max-width:130px;text-align:right">
-          <span class="unit">m</span>
-        </div>
-        <input type="text" id="high-cmt-v" placeholder="必要な機材（例：高所作業車、脚立12尺）">
-      </div>
-    </div>
-  </div>
-
   <div id="emg-fields" style="display:none">
     <div class="field" id="emg-mount-field">
       <label>取付方法</label>
@@ -563,6 +574,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
   </div>
 
+  <div id="high-field" style="display:none">
+    <div class="field">
+      <label>高所作業</label>
+      <div class="tgroup">
+        <button class="tbtn" id="high-yes" onclick="setHigh(highSt==='yes'?'':'yes')">あり</button>
+      </div>
+      <div class="cmt" id="high-cmt">
+        <div class="uw" style="margin-bottom:6px">
+          <input type="number" id="high-h-v" placeholder="約何メートル" style="max-width:130px;text-align:right">
+          <span class="unit">m</span>
+        </div>
+        <input type="text" id="high-cmt-v" placeholder="必要な機材（例：高所作業車、脚立12尺）">
+      </div>
+    </div>
+  </div>
 
   <div class="divider"></div>
 
@@ -694,13 +720,20 @@ function setFixType(v){
   if(clledBtn)clledBtn.style.display=(isEonly||isGuide)?'none':'';
   const lledDetailEl=document.getElementById('lled-detail');
   if(lledDetailEl&&(isEonly||isGuide))lledDetailEl.style.display='none';
-  // eonly/guideに切替時に lled が選択されていたらリセット
-  if((isEonly||isGuide)&&ledSt==='lled'){ledSt='';const clledR=document.getElementById('c-lled');if(clledR)clledR.classList.remove('act-in');}
+  // eonly/guideに切替時に LED状態をリセット（led/lled両方）
+  if((isEonly||isGuide)&&ledSt){
+    ledSt='';
+    const cledR=document.getElementById('c-led');if(cledR)cledR.classList.remove('act-in');
+    const clledR=document.getElementById('c-lled');if(clledR)clledR.classList.remove('act-in');
+    const ldEl=document.getElementById('led-detail');if(ldEl)ldEl.style.display='none';
+    const lldEl=document.getElementById('lled-detail');if(lldEl)lldEl.style.display='none';
+    const fnReset=document.getElementById('fname');if(fnReset)fnReset.value='';
+  }
   updateEmgForEonly();
   updateNormalLedFields();
   // 非常灯兼用の場合は照明名称 placeholder を専用文言に
   const fnameEl2=document.getElementById('fname');
-  if(fnameEl2)fnameEl2.placeholder=v==='ecomb'?'例：非常兼用20形蛍光灯、非常兼用丸形ブラケット':'例：壁面ブラケット(A)、防犯灯';
+  if(fnameEl2)fnameEl2.placeholder=v==='ecomb'?'例：非常兼用20形蛍光灯、非常兼用丸形ブラケット':'例：20形蛍光灯、丸型ブラケット、庭園灯';
   renderFF();
 }
 function setGuideLed(){
@@ -843,6 +876,7 @@ function updateNormalLedFields(){
   // ランプ種別ラベル：旧器具にLEDランプ使用選択時は「ランプ型番」に変更
   const lampLbl=document.getElementById('lamp-label');
   if(lampLbl)lampLbl.firstChild.textContent=isLled?'ランプ型番':'ランプ種別';
+  const lampInput=document.getElementById('lamp');if(lampInput)lampInput.placeholder=isLled?'例：LDT4、LDG20T':'例：FPL13、FL20';
 }
 function setLedType(v){
   ledTypeSt=v;
@@ -887,7 +921,9 @@ function getSec(){
   }
   return v;
 }
-function onShape(){const v=gv('shape');['c','s','r','f'].forEach(t=>document.getElementById('dim-'+t).classList.toggle('show',v===t));const nb=document.getElementById('dim-note-blk');if(nb)nb.style.display=v?'block':'none';}
+let poleTypeSt='';
+function setPoleType(v){poleTypeSt=poleTypeSt===v?'':v;['garden','pole'].forEach(k=>{const b=document.getElementById('pt-'+k);if(b)b.classList.toggle('act-in',poleTypeSt===k);});document.getElementById('pole-garden-fields').style.display=poleTypeSt==='garden'?'block':'none';document.getElementById('pole-pole-fields').style.display=poleTypeSt==='pole'?'block':'none';}
+function onShape(){const v=gv('shape');['c','s','r','f','p'].forEach(t=>document.getElementById('dim-'+t).classList.toggle('show',v===t));const nb=document.getElementById('dim-note-blk');if(nb)nb.style.display=(v&&v!=='p')?'block':'none';if(v!=='p'){poleTypeSt='';['garden','pole'].forEach(k=>{const b=document.getElementById('pt-'+k);if(b)b.classList.remove('act-in');});['pole-garden-fields','pole-pole-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';})}}
 function getDim(){
   const v=gv('shape');
   let s='';
@@ -895,10 +931,11 @@ function getDim(){
   else if(v==='s'){const d=gv('dside'),mx=gv('dside-max');s=d?'□'+d+'mm':'';if(mx)s+='（最大外径□'+mx+'mm）';}
   else if(v==='r'){const h=gv('dh'),w=gv('dw'),mxh=gv('drect-max-h'),mxw=gv('drect-max-w');s=[h?'縦'+h+'mm':'',w?'横'+w+'mm':''].filter(Boolean).join('×');const mxp=[mxh?'縦'+mxh+'mm':'',mxw?'横'+mxw+'mm':''].filter(Boolean).join('×');if(mxp)s+='（最大外径'+mxp+'）';}
   else if(v==='f')s=gv('dfree');
+  else if(v==='p'){const pt=poleTypeSt;if(pt==='garden'){const d=gv('dpole-d'),h=gv('dpole-h');s=[d?'ポール径'+d+'mm':'',h?'ポール高'+h+'mm':''].filter(Boolean).join('　');}else if(pt==='pole'){const d=gv('dpole-pd');s=d?'ポール径'+d+'mm':'';} }
   const note=gv('dim-note');if(note)s+=(s?'　':'')+note;
   return s;
 }
-function getDv(){return{shape:gv('shape'),phiOut:gv('dphi-out'),phiIn:gv('dphi-in'),side:gv('dside'),sideMax:gv('dside-max'),dh:gv('dh'),dw:gv('dw'),rectMaxH:gv('drect-max-h'),rectMaxW:gv('drect-max-w'),free:gv('dfree'),dimNote:gv('dim-note')};}
+function getDv(){return{shape:gv('shape'),phiOut:gv('dphi-out'),phiIn:gv('dphi-in'),side:gv('dside'),sideMax:gv('dside-max'),dh:gv('dh'),dw:gv('dw'),rectMaxH:gv('drect-max-h'),rectMaxW:gv('drect-max-w'),free:gv('dfree'),dimNote:gv('dim-note'),poleType:poleTypeSt,poleD:gv('dpole-d'),poleH:gv('dpole-h'),polePd:gv('dpole-pd')};}
 function tc(id){document.getElementById(id).classList.toggle('on');}
 function isOn(id){return document.getElementById(id).classList.contains('on');}
 function onCtChange(){/* ct moved to floor rows */}
@@ -908,9 +945,11 @@ function flOpts(cur,usedFloors=[]){
   const from=gv('fl-from'),to=gv('fl-to');
   const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
   let floorOpts=['屋上'];
-  if(from&&to){
-    const fi=all.indexOf(from),ti=all.indexOf(to);
-    if(fi>=0&&ti>=fi)floorOpts=all.slice(fi,ti+1).concat(['屋上']);
+  if(from){
+    const fi=all.indexOf(from);
+    const ti=to?all.indexOf(to):all.length-1;
+    if(fi>=0&&ti>=fi)floorOpts=all.slice(fi,ti+1);
+    else if(fi>=0)floorOpts=all.slice(fi);
   }
   return `<option value="">フロアを選択</option>`+floorOpts.map(f=>{
     const isUsed=usedFloors.includes(f)&&f!==cur;
@@ -1015,6 +1054,14 @@ function renderFloorRows(rows,fid,eid,showCt=true){
 }
 
 // ── フォーム：フロア管理 ──
+function showFloorRequired(){
+  const h=document.getElementById('fl-from-hint');
+  if(h){h.style.display='block';setTimeout(()=>h.style.display='none',3000);}
+  const flFrom=document.getElementById('fl-from');
+  if(flFrom){flFrom.style.borderColor='#e53e3e';setTimeout(()=>flFrom.style.borderColor='',2000);}
+  const bldgCard=document.querySelector('.card');
+  if(bldgCard)bldgCard.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function initFlTo(){
   const from=gv('fl-from');
   const toSel=document.getElementById('fl-to');
@@ -1027,9 +1074,11 @@ function addFF(){
   const from=gv('fl-from'),to=gv('fl-to');
   const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
   let floorList=[];
-  if(from&&to){
-    const fi=all.indexOf(from),ti=all.indexOf(to);
+  if(from){
+    const fi=all.indexOf(from);
+    const ti=to?all.indexOf(to):all.length-1;
     if(fi>=0&&ti>=fi)floorList=all.slice(fi,ti+1);
+    else if(fi>=0)floorList=all.slice(fi);
   }
   if(floorList.length>0){
     const lastF=fFloors.length?fFloors[fFloors.length-1]:null;
@@ -1051,13 +1100,13 @@ function addFF(){
   setTimeout(()=>{const l=document.querySelector('#f-floors .fl-block:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 function addOneFF(){
-  if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
+  if(!gv('fl-from')){showFloorRequired();return;}
   fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''});
   renderFF();
   setTimeout(()=>{const l=document.querySelector('#f-floors .fl-block:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 function addOneFFAfter(fid){
-  if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
+  if(!gv('fl-from')){showFloorRequired();return;}
   const idx=fFloors.findIndex(f=>f.id===fid);
   const newFloor={id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''};
   if(idx>=0)fFloors.splice(idx+1,0,newFloor);else fFloors.push(newFloor);
@@ -1241,6 +1290,7 @@ function regEntry(){
     if(ledSt!=='led'){
       const _sh=gv('shape');
       if(!_sh){toast('器具寸法の形状を選択してください','err');highlightErr('shape');return;}
+      if(_sh==='p'&&!poleTypeSt){toast('ポール種別を選択してください','err');return;}
       if(_sh==='c'&&!gv('dphi-in')){toast('器具寸法（内径Φ）を入力してください','err');highlightErr('dphi-in');return;}
       if(_sh==='s'&&!gv('dside')){toast('器具寸法（正方形の設置面□）を入力してください','err');highlightErr('dside');return;}
       if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');if(!gv('dh'))highlightErr('dh');else highlightErr('dw');return;}
@@ -1337,7 +1387,7 @@ function editEntry(eid){
 }
 
 function clearForm(){
-  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
+  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   editingId=null;_editBackup=null;
   const _fc=document.getElementById('form-card');if(_fc)_fc.classList.remove('editing-card');
   const _eb=document.getElementById('editing-banner');if(_eb)_eb.classList.remove('show');;
@@ -1345,7 +1395,7 @@ function clearForm(){
   document.getElementById('parking-field').style.display='none';
   const otherRow=document.getElementById('sec-other-row');if(otherRow)otherRow.style.display='none';
   const secSubEl=document.getElementById('sec-sub');if(secSubEl)secSubEl.style.display='';
-  document.getElementById('shape').value='';onShape();
+  document.getElementById('shape').value='';onShape();poleTypeSt='';['pt-garden','pt-pole'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});['pole-garden-fields','pole-pole-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});['dpole-d','dpole-h','dpole-pd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   setRain('');setHigh('');
   senyuSt=false;
   ['senyu-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
@@ -1492,7 +1542,7 @@ function applyFix(fix){
     const lcEl=document.getElementById('lamp-count');if(lcEl)lcEl.value=fix.lampCount||'1';
     sv('watt',fix.watt);
     const dv=fix.dv||{};
-    sv('shape',dv.shape);onShape();
+    sv('shape',dv.shape);onShape();if(dv.poleType)setPoleType(dv.poleType);sv('dpole-d',dv.poleD||'');sv('dpole-h',dv.poleH||'');sv('dpole-pd',dv.polePd||'');
     sv('dphi-out',dv.phiOut);sv('dphi-in',dv.phiIn);
     sv('dside',dv.side);sv('dside-max',dv.sideMax);
     sv('dh',dv.dh);sv('dw',dv.dw);sv('drect-max-h',dv.rectMaxH);sv('drect-max-w',dv.rectMaxW);
@@ -1737,6 +1787,12 @@ function convMode(mode,timer){
 // ── メール送信（Web3Forms） ──
 async function doEmailSend(){
   if(!entries.length)return;
+  if(!gv('surveyor-company')||!gv('surveyor-name')){
+    toast('企業名と氏名を入力してください','err');
+    highlightErr('surveyor-company');highlightErr('surveyor-name');
+    document.getElementById('surveyor-company').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   if(!confirm('調査データをKNOCK GRITへ送信しますか？'))return;
   const bldg=gv('bldg')||'（未入力）';
   const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
@@ -1754,7 +1810,7 @@ async function doEmailSend(){
   let txt=`【LED照明現地調査】\n`;
   txt+=`📅 調査日：${dateStr}\n`;
   txt+=`🕐 共有日時：${dateStr} ${timeStr}\n`;
-  if(surveyorCompany||surveyorName)txt+=`👤 調査実施者：${[surveyorCompany,surveyorName].filter(Boolean).join('　')}\n`;
+  txt+=`👤 調査実施者：${[surveyorCompany,surveyorName].filter(Boolean).join('　')||'（未入力）'}\n`;
   txt+=`🏢 物件名：${bldg}\n`;
   if(t1s&&t1e)txt+=`⏰ タイマー①：${t1s}〜${t1e}\n`;
   if(t2s&&t2e)txt+=`⏰ タイマー②：${t2s}〜${t2e}\n`;
@@ -1845,7 +1901,7 @@ async function doEmailSend(){
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body:JSON.stringify({
         access_key:'7889d92c-d035-4b8f-ab55-ab3193d05601',
-        subject:`【LED現地調査】${bldg}　${dateStr}`,
+        subject:`【LED現地調査結果】${bldg}　${surveyorCompany}/${surveyorName}`,
         message:txt,
         from_name:'LED現地調査フォーム'
       })
@@ -1897,5 +1953,72 @@ initTimeSelects();
 fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:'',ct:''}],memo:''});
 renderFF();
 </script>
+
+<!-- 非常灯兼用とは モーダル -->
+<div id="ecomb-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;position:relative">
+    <button onclick="document.getElementById('ecomb-modal').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:#718096">✕</button>
+    <div style="font-size:16px;font-weight:700;color:#2b6cb0;margin-bottom:14px">💡 非常灯兼用とは</div>
+    <div style="font-size:13px;color:#2d3748;line-height:1.7;margin-bottom:16px">
+      通常時は一般照明として点灯し、停電時には非常灯として自動点灯する<b>非常用照明器具と通常照明を兼ねた器具</b>です。<br>
+      バッテリーと充電回路が内蔵されており、消防法・建築基準法の適合品であることを示す認定マークが貼付されています。
+    </div>
+    <div style="font-size:14px;font-weight:700;color:#4a5568;margin-bottom:10px">🔖 認定マーク（年代別）</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
+      <!-- ~1986 -->
+      <div style="border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center">
+        <svg viewBox="0 0 60 60" width="52" height="52" style="display:block;margin:0 auto 4px">
+          <circle cx="30" cy="30" r="28" fill="#1a7a1a"/>
+          <circle cx="30" cy="30" r="20" fill="#fff"/>
+          <circle cx="30" cy="30" r="14" fill="#1a7a1a"/>
+          <circle cx="30" cy="30" r="7" fill="#fff"/>
+        </svg>
+        <div style="font-size:11px;font-weight:700">〜1986年頃</div>
+        <div style="font-size:10px;color:#718096">緑・白の同心円</div>
+      </div>
+      <!-- 1987~2000 -->
+      <div style="border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center">
+        <svg viewBox="0 0 60 60" width="52" height="52" style="display:block;margin:0 auto 4px">
+          <circle cx="30" cy="30" r="28" fill="#111"/>
+          <circle cx="30" cy="30" r="20" fill="#fff"/>
+          <circle cx="30" cy="30" r="14" fill="#111"/>
+          <circle cx="30" cy="30" r="7" fill="#fff"/>
+        </svg>
+        <div style="font-size:11px;font-weight:700">1987〜2000年頃</div>
+        <div style="font-size:10px;color:#718096">黒・白の同心円</div>
+      </div>
+      <!-- 2001~2010 -->
+      <div style="border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center">
+        <svg viewBox="0 0 60 60" width="52" height="52" style="display:block;margin:0 auto 4px">
+          <circle cx="30" cy="30" r="28" fill="#c00"/>
+          <circle cx="30" cy="30" r="20" fill="#fff"/>
+          <circle cx="30" cy="30" r="14" fill="#c00"/>
+          <circle cx="30" cy="30" r="7" fill="#fff"/>
+        </svg>
+        <div style="font-size:11px;font-weight:700">2001〜2010年頃</div>
+        <div style="font-size:10px;color:#718096">赤・白の同心円</div>
+      </div>
+      <!-- 2011~ -->
+      <div style="border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center">
+        <svg viewBox="0 0 60 60" width="52" height="52" style="display:block;margin:0 auto 4px">
+          <circle cx="30" cy="30" r="28" fill="#1a4a9a"/>
+          <circle cx="30" cy="30" r="20" fill="#fff"/>
+          <circle cx="30" cy="30" r="14" fill="#1a4a9a"/>
+          <circle cx="30" cy="30" r="7" fill="#fff"/>
+        </svg>
+        <div style="font-size:11px;font-weight:700">2011年〜現在</div>
+        <div style="font-size:10px;color:#718096">青・白の同心円</div>
+      </div>
+    </div>
+    <div style="font-size:14px;font-weight:700;color:#4a5568;margin-bottom:8px">🔦 器具の特徴</div>
+    <div style="font-size:12px;color:#4a5568;line-height:1.8">
+      ・器具本体または銘板に認定マーク（同心円）が貼付されている<br>
+      ・器具内部にバッテリーが内蔵されている<br>
+      ・天井埋込・直付・壁付など各種取付タイプがある<br>
+      ・引きひも（プルスイッチ）付の蛍光灯器具によく見られる<br>
+      ・点検ボタン（TEST）が付いている場合がある
+    </div>
+  </div>
+</div>
 </body>
 </html>
