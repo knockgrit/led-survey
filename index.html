@@ -20,6 +20,8 @@ header .hdr-bldg{font-size:13px;font-weight:700;margin:0;overflow:hidden;text-ov
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4px}
 .req{color:#e53e3e;margin-left:2px}
+.err-highlight{border-color:#e53e3e!important;background:#fff5f5!important;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 input[type=text],input[type=number],input[type=time],select,textarea{
   width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
@@ -400,7 +402,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
   <div id="normal-fields" style="display:none">
     <div class="field" id="normal-dim-field">
-      <label>器具寸法</label>
+      <label>器具寸法<span class="req">*</span></label>
       <select id="shape" onchange="onShape()">
         <option value="">形状を選択</option>
         <option value="c">丸形（Φ）</option>
@@ -457,9 +459,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
         <input type="text" id="dfree" placeholder="例：125×270mm">
         <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※ダウンライトは外径必須。塗装やコーキングがある場合も隠せる外径を入力</div>
       </div>
+
+      <!-- 器具寸法専用備考 -->
+      <div id="dim-note-blk" style="display:none;margin-top:10px">
+        <div style="font-size:12px;color:#718096;margin-bottom:4px">寸法備考（任意）</div>
+        <input type="text" id="dim-note" placeholder="例：埋込穴径Φ100mm、出幅25mm、笠径320mm">
+      </div>
     </div>
 
-    <div class="field" id="normal-lamp-field"><label>ランプ種別</label><input type="text" id="lamp" placeholder="例：FPL13、FL20"></div>
+    <div class="field" id="normal-lamp-field"><label>ランプ種別<span class="req">*</span></label><input type="text" id="lamp" placeholder="例：FPL13、FL20"></div>
     <div class="field" id="normal-lamp-count-field">
       <label>ランプ灯数</label>
       <select id="lamp-count" style="max-width:140px">
@@ -481,7 +489,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       </select>
     </div>
     <div class="field" id="normal-watt-field">
-      <label>消費電力</label>
+      <label>消費電力<span class="req">*</span></label>
       <div class="uw" style="max-width:200px"><input type="number" id="watt" placeholder="例：16.5"><span class="unit">W</span></div>
       <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※器具側型番記載の消費電力。ランプが異なる場合はランプ記載の消費電力を入力</div>
     </div>
@@ -496,9 +504,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field">
       <label>雨線</label>
       <div class="tgroup">
-        <button class="tbtn" id="rain-in"  onclick="setRain('in')">雨線内</button>
-        <button class="tbtn" id="rain-out" onclick="setRain('out')">雨線外</button>
-
+        <button class="tbtn" id="rain-out" onclick="setRain(rainSt==='out'?'':'out')">雨線外</button>
       </div>
       <div class="cmt" id="rain-cmt"><input type="text" id="rain-cmt-v" placeholder="備考（例：軒下だが雨がかかる可能性あり）"></div>
     </div>
@@ -506,8 +512,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field">
       <label>高所作業</label>
       <div class="tgroup">
-        <button class="tbtn" id="high-no"  onclick="setHigh('no')">なし</button>
-        <button class="tbtn" id="high-yes" onclick="setHigh('yes')">あり</button>
+        <button class="tbtn" id="high-yes" onclick="setHigh(highSt==='yes'?'':'yes')">あり</button>
       </div>
       <div class="cmt" id="high-cmt">
         <div class="uw" style="margin-bottom:6px">
@@ -640,6 +645,7 @@ const openCards=new Set();
 
 function updH(){document.getElementById('h-bldg').textContent=gv('bldg')||'物件名未入力';}
 function gv(id){return document.getElementById(id)?.value?.trim()||'';}
+function highlightErr(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('err-highlight');void el.offsetWidth;el.classList.add('err-highlight');el.focus();setTimeout(()=>el.classList.remove('err-highlight'),3000);}
 
 
 function setDb(v){
@@ -652,14 +658,11 @@ function setDb(v){
 }
 function setRain(v){
   rainSt=v;
-  document.getElementById('rain-in').className='tbtn'+(v==='in'?' act-in':'');
   document.getElementById('rain-out').className='tbtn'+(v==='out'?' act-out':'');
-  const runk=document.getElementById('rain-unk');if(runk)runk.className='tbtn'+(v==='unk'?' act-unk':'');
-  document.getElementById('rain-cmt').classList.toggle('show',v!==''&&v!=='unk');
+  document.getElementById('rain-cmt').classList.toggle('show',v==='out');
 }
 function setHigh(v){
   highSt=v;
-  document.getElementById('high-no').className='tbtn'+(v==='no'?' act-no':'');
   document.getElementById('high-yes').className='tbtn'+(v==='yes'?' act-yes':'');
   document.getElementById('high-cmt').classList.toggle('show',v==='yes');
 }
@@ -861,16 +864,18 @@ function getSec(){
   }
   return v;
 }
-function onShape(){const v=gv('shape');['c','s','r','f'].forEach(t=>document.getElementById('dim-'+t).classList.toggle('show',v===t));}
+function onShape(){const v=gv('shape');['c','s','r','f'].forEach(t=>document.getElementById('dim-'+t).classList.toggle('show',v===t));const nb=document.getElementById('dim-note-blk');if(nb)nb.style.display=v?'block':'none';}
 function getDim(){
   const v=gv('shape');
-  if(v==='c'){const out=gv('dphi-out'),inn=gv('dphi-in');let s=out?'Φ'+out+'mm':'';if(inn)s+='（内径Φ'+inn+'mm）';return s;}
-  if(v==='s'){const d=gv('dside'),mx=gv('dside-max');let s=d?'□'+d+'mm':'';if(mx)s+='（最大外径□'+mx+'mm）';return s;}
-  if(v==='r'){const h=gv('dh'),w=gv('dw'),mxh=gv('drect-max-h'),mxw=gv('drect-max-w');let s=[h?'縦'+h+'mm':'',w?'横'+w+'mm':''].filter(Boolean).join('×');const mxp=[mxh?'縦'+mxh+'mm':'',mxw?'横'+mxw+'mm':''].filter(Boolean).join('×');if(mxp)s+='（最大外径'+mxp+'）';return s;}
-  if(v==='f')return gv('dfree');
-  return '';
+  let s='';
+  if(v==='c'){const out=gv('dphi-out'),inn=gv('dphi-in');s=out?'Φ'+out+'mm':'';if(inn)s+='（内径Φ'+inn+'mm）';}
+  else if(v==='s'){const d=gv('dside'),mx=gv('dside-max');s=d?'□'+d+'mm':'';if(mx)s+='（最大外径□'+mx+'mm）';}
+  else if(v==='r'){const h=gv('dh'),w=gv('dw'),mxh=gv('drect-max-h'),mxw=gv('drect-max-w');s=[h?'縦'+h+'mm':'',w?'横'+w+'mm':''].filter(Boolean).join('×');const mxp=[mxh?'縦'+mxh+'mm':'',mxw?'横'+mxw+'mm':''].filter(Boolean).join('×');if(mxp)s+='（最大外径'+mxp+'）';}
+  else if(v==='f')s=gv('dfree');
+  const note=gv('dim-note');if(note)s+=(s?'　':'')+note;
+  return s;
 }
-function getDv(){return{shape:gv('shape'),phiOut:gv('dphi-out'),phiIn:gv('dphi-in'),side:gv('dside'),sideMax:gv('dside-max'),dh:gv('dh'),dw:gv('dw'),rectMaxH:gv('drect-max-h'),rectMaxW:gv('drect-max-w'),free:gv('dfree')};}
+function getDv(){return{shape:gv('shape'),phiOut:gv('dphi-out'),phiIn:gv('dphi-in'),side:gv('dside'),sideMax:gv('dside-max'),dh:gv('dh'),dw:gv('dw'),rectMaxH:gv('drect-max-h'),rectMaxW:gv('drect-max-w'),free:gv('dfree'),dimNote:gv('dim-note')};}
 function tc(id){document.getElementById(id).classList.toggle('on');}
 function isOn(id){return document.getElementById(id).classList.contains('on');}
 function onCtChange(){/* ct moved to floor rows */}
@@ -1207,17 +1212,17 @@ function regEntry(){
   const sec=getSec(),name=gv('fname');
   const secSub=gv('sec')!=='その他'?gv('sec-sub'):'';
   const fullSection=secSub?sec+'　'+secSub:sec;
-  if(!sec){toast('設置場所を選択してください','err');return;}
-  if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');return;}
+  if(!sec){toast('設置場所を選択してください','err');highlightErr('sec');return;}
+  if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');highlightErr('fname');return;}
   if(fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){
     const _sh=gv('shape');
-    if(!_sh){toast('器具寸法の形状を選択してください','err');return;}
-    if(_sh==='s'&&!gv('dside')){toast('器具寸法（正方形の設置面□）を入力してください','err');return;}
-    if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');return;}
-    if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');return;}
+    if(!_sh){toast('器具寸法の形状を選択してください','err');highlightErr('shape');return;}
+    if(_sh==='s'&&!gv('dside')){toast('器具寸法（正方形の設置面□）を入力してください','err');highlightErr('dside');return;}
+    if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');if(!gv('dh'))highlightErr('dh');else highlightErr('dw');return;}
+    if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');highlightErr('dfree');return;}
     if(ledSt!=='led'){
-      if(!gv('lamp')){toast('ランプ種別を入力してください','err');return;}
-      if(!gv('watt')){toast('消費電力を入力してください','err');return;}
+      if(!gv('lamp')){toast('ランプ種別を入力してください','err');highlightErr('lamp');return;}
+      if(!gv('watt')){toast('消費電力を入力してください','err');highlightErr('watt');return;}
     }
   }
   if(!fFloors.length){toast('フロア情報を追加してください','err');return;}
@@ -1298,7 +1303,7 @@ function editEntry(eid){
 }
 
 function clearForm(){
-  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','rain-cmt-v','high-h-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
+  ['fname','lamp','watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','rain-cmt-v','high-h-v','high-cmt-v','parking-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   editingId=null;_editBackup=null;
   const _fc=document.getElementById('form-card');if(_fc)_fc.classList.remove('editing-card');
   const _eb=document.getElementById('editing-banner');if(_eb)_eb.classList.remove('show');;
@@ -1458,6 +1463,7 @@ function applyFix(fix){
     sv('dside',dv.side);sv('dside-max',dv.sideMax);
     sv('dh',dv.dh);sv('dw',dv.dw);sv('drect-max-h',dv.rectMaxH);sv('drect-max-w',dv.rectMaxW);
     sv('dfree',dv.free);
+    sv('dim-note',dv.dimNote||'');
     setRain(fix.rain||'');sv('rain-cmt-v',fix.rainC);
   }
   setHigh(fix.high||'');sv('high-h-v',fix.highH||'');sv('high-cmt-v',fix.highC);
