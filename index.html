@@ -110,341 +110,45 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 .toast.ok{background:#38a169}
 .toast.err{background:#e53e3e}
 </style>
+
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=number],input[type=time],select,textarea{
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:15px;font-family:inherit;background:#f7fafc;-webkit-appearance:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;background:#fff}
+.uw{display:flex;align-items:center;gap:6px}
+.uw input{flex:1}
+.unit{color:#718096;font-size:13px;white-space:nowrap}
+.tgroup{display:flex;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.tbtn{flex:1;padding:10px 6px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;background:#f7fafc;color:#718096;border:none;transition:all .15s;line-height:1.2;touch-action:manipulation}
 </head>
 <body>
 <header style="position:sticky;top:0;z-index:200;">
-  <div class="logo-wrap"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAADKQAAADcCAQAAABe11ChAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfqAx4LAA5ngAreAAA2U0lEQVR42u3d7XHqyrbu8WfdWglohSCHIEKAECAEEQKEACGgEEwIEAIKwQrhKIR9P2DP6RcwYEs9enT/f1Wn7q5z6m5rgtDLeLrH+Od/G4XTqQn408IrVKuwPog77dUG/oul6lH/+1vtA/+LPAv3u0/9Vy9JpcrX/zS1PhQj/Z/rSave+mAS8nZmFaqsD8W5cNeh+s/VIIR1wL9lYeXmmYonEAvV6/lRBv3V5emoo+nfD/m2is86dR/+37SlWhnhN5SDJovf6HdS/f0CiMw///tfwL921Mz6HzyiSjs3xa6tQfllqkOC/yqvwv3uU/zVF6o0lVTpbyEHf3Xq1KlXr9a49OLN25lVquDMGlS469AhaJz6T8C/FVqhZzfR9F5LIuQASlWv9918ly1YsX7CDvm2iu+8PeG1ahMt2aZaGeE3lINZ9u9dqf5+AUTmX+sDSMZcOidlr17rRPPzlQotrQ8CyTqXcEpVrH294ePq4PPLNpHKdef4hDML+KvSs5vfw1pb60NI2vneWxEuAxF4/4TXqVVnvlsJAAAgKIKUYWy0sj6EO7VaBm/qFU4tEaVgcFNNNXWz3yw21esn1+uoo46JrmD8mVJzTVlZDXxSa+OkaN5rQRFxNFNNNXcTqAG5OYcqK/Xaq9WefXkAACAHBCm/R/uJmNQqtUj834hQitcyt4+CXuwKzTWX1OpoMKMpNhQIgWt2I09UG06rBdHwCLj3Ap4UqiXttNeROAUAAKSOIOW3PLWf">  </div>
-  <div class="hdr-inner">
-    <p class="hdr-title">LED照明調査システム</p>
-    <p class="hdr-bldg" id="hdr-bldg">- 建物未選択 -</p>
-  </div>
-</header>
-<div class="container">
-  <div id="main-view"></div>
-</div>
-<div class="bottom-bar">
-  <div class="bb-inner">
-    <button id="btn-save" class="btn btn-blue btn-full" style="display:none">保存</button>
-    <button id="btn-export" class="btn btn-green btn-full">エクスポート</button>
-  </div>
-</div>
-<div id="modal-backdrop" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9998"></div>
-<div id="modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,.1);z-index:9999;max-width:90vw;max-height:90vh;overflow:auto;padding:20px">
-  <div id="modal-content"></div>
-</div>
-<script>
-  const LAMP_LIBRARY = {
-    "非常灯（通常点灯）": {type: "非常灯", voltage: "DC", icon: "🔴"},
-    "非常灯（停電時点灯）": {type: "非常灯", voltage: "DC", icon: "🟡"},
-    "非常用投光照明": {type: "非常照明", voltage: "AC", icon: "🟠"},
-    "専用回路（非常灯用）": {type: "非常灯", voltage: "DC", icon: "🔴"},
-    "兼用回路（非常灯兼用）": {type: "非常灯兼用", voltage: "AC", icon: "🟡"},
-    "表示灯": {type: "表示灯", voltage: "AC", icon: "🟢"},
-    "一般照明": {type: "一般照明", voltage: "AC", icon: "⚪"},
-    "看板灯": {type: "その他", voltage: "AC", icon: "🟦"},
-    "屋外投光照明": {type: "その他", voltage: "AC", icon: "💡"}
-  };
-
-  const LAMP_SPECS = {
-    "非常灯（通常点灯）": [
-      {name: "標準タイプ", spec: "40W or 60W LED", waterproof: false},
-      {name: "防水タイプ", spec: "40W or 60W LED", waterproof: true},
-      {name: "埋込みタイプ", spec: "20W LED", waterproof: false}
-    ],
-    "非常灯（停電時点灯）": [
-      {name: "標準タイプ", spec: "DC10.2V バッテリー内蔵", waterproof: false},
-      {name: "防水タイプ", spec: "DC10.2V バッテリー内蔵", waterproof: true}
-    ],
-    "非常用投光照明": [
-      {name: "LED式", spec: "50W or 100W LED", waterproof: true},
-      {name: "バッテリー式", spec: "200W 自立形", waterproof: true}
-    ],
-    "兼用回路（非常灯兼用）": [
-      {name: "天井・壁直付", spec: "40W or 60W LED", waterproof: false},
-      {name: "天井・壁直付・防水仕様", spec: "40W or 60W LED", waterproof: true}
-    ]
-  };
-
-  let dataStore = {};
-
-  function initApp() {
-    const buildingSelect = `
-      <div class="card">
-        <div class="card-title">建物選択</div>
-        <select id="building-select" onchange="selectBuilding(this.value)" style="width:100%;padding:10px">
-          <option value="">-- 建物を選択 --</option>
-          <option>新宿ビル</option>
-          <option>渋谷支店</option>
-          <option>池袋営業所</option>
-          <option>品川データセンター</option>
-        </select>
-      </div>
-    `;
-    document.getElementById('main-view').innerHTML = buildingSelect;
-  }
-
-  function selectBuilding(name) {
-    if (!name) return;
-    dataStore = {name, floors: {}};
-    document.getElementById('hdr-bldg').textContent = name;
-    showFloorSelect();
-  }
-
-  function showFloorSelect() {
-    const html = `
-      <div class="card">
-        <div class="card-title">階層選択</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <select id="fl-from" style="flex:1" onchange="initFlTo()">
-            <option value="">最下階</option>
-            <option>B3</option><option>B2</option><option>B1</option><option>1F</option><option>2F</option><option>3F</option><option>4F</option><option>5F</option><option>R</option>
-          </select>
-          <span>～</span>
-          <select id="fl-to" style="flex:1">
-            <option value="">最上階</option>
-          </select>
-          <button class="btn btn-blue" onclick="confirmFloors()">選択</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">入力済み階層</div>
-        <div id="floor-list" class="empty">未入力</div>
-      </div>
-    `;
-    document.getElementById('main-view').innerHTML = html;
-    initFlTo();
-    updateFloorList();
-  }
-
-  function initFlTo() {
-    const from = document.getElementById('fl-from').value;
-    const allFloors = ['B3', 'B2', 'B1', '1F', '2F', '3F', '4F', '5F', 'R'];
-    const fromIdx = allFloors.indexOf(from);
-    const options = ['<option value="">最上階</option>'];
-    for (let i = Math.max(fromIdx, 0); i < allFloors.length; i++) {
-      options.push(`<option>${allFloors[i]}</option>`);
-    }
-    document.getElementById('fl-to').innerHTML = options.join('');
-  }
-
-  function confirmFloors() {
-    const from = document.getElementById('fl-from').value;
-    const to = document.getElementById('fl-to').value;
-    if (!from || !to) { alert('階層を選択してください'); return; }
-    const allFloors = ['B3', 'B2', 'B1', '1F', '2F', '3F', '4F', '5F', 'R'];
-    const fromIdx = allFloors.indexOf(from);
-    const toIdx = allFloors.indexOf(to);
-    const selected = allFloors.slice(fromIdx, toIdx + 1);
-    selected.forEach(f => { if (!dataStore.floors[f]) dataStore.floors[f] = []; });
-    updateFloorList();
-  }
-
-  function updateFloorList() {
-    const list = document.getElementById('floor-list');
-    const floors = Object.keys(dataStore.floors).sort();
-    if (floors.length === 0) {
-      list.innerHTML = '<div class="empty">未入力</div>';
-    } else {
-      list.innerHTML = floors.map(f => `<div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer" onclick="editFloor('${f}')">📍 ${f}</div>`).join('');
-    }
-  }
-
-  function editFloor(floor) {
-    const html = `
-      <div class="card">
-        <div class="card-title">${floor}階の照明調査</div>
-        <div class="chips" id="lamp-library">
-          ${Object.keys(LAMP_LIBRARY).map(name => 
-            `<div class="chip" onclick="addLamp('${floor}', '${name}')">${LAMP_LIBRARY[name].icon} ${name}</div>`
-          ).join('')}
-        </div>
-      </div>
-      <div class="card" id="equipment-cards"></div>
-      <div class="card">
-        <button class="btn btn-blue btn-full" onclick="showFloorSelect()">戻る</button>
-      </div>
-    `;
-    document.getElementById('main-view').innerHTML = html;
-    updateEquipmentCards(floor);
-  }
-
-  function addLamp(floor, type) {
-    const specs = LAMP_SPECS[type] || [{name: '標準', spec: type, waterproof: false}];
-    showLampSpecModal(floor, type, specs);
-  }
-
-  function showLampSpecModal(floor, type, specs) {
-    const options = specs.map((s, i) => `<div class="lib-item" onclick="confirmLamp('${floor}', '${type}', ${i})" style="cursor:pointer"><div class="ln">${s.name}</div><div class="ls">${s.spec}</div>${s.waterproof ? '<div class="ls" style="color:#38a169">✓ 防水</div>' : ''}</div>`).join('');
-    const modal = `
-      <h3 style="margin-top:0">${type}</h3>
-      <p style="color:#718096">仕様を選択してください</p>
-      <div class="lib-grid" style="gap:10px">${options}</div>
-    `;
-    document.getElementById('modal-content').innerHTML = modal;
-    document.getElementById('modal').style.display = 'block';
-    document.getElementById('modal-backdrop').style.display = 'block';
-  }
-
-  function confirmLamp(floor, type, specIdx) {
-    closeModal();
-    const specs = LAMP_SPECS[type] || [{name: '標準'}];
-    const eq = {
-      id: Date.now(),
-      floor, type,
-      spec: specs[specIdx].name,
-      location: '',
-      circuit: '',
-      count: 1,
-      remarks: ''
-    };
-    dataStore.floors[floor].push(eq);
-    editFloor(floor);
-  }
-
-  function updateEquipmentCards(floor) {
-    const cards = document.getElementById('equipment-cards');
-    const items = dataStore.floors[floor] || [];
-    if (items.length === 0) {
-      cards.innerHTML = '<div class="empty">未登録</div>';
-    } else {
-      cards.innerHTML = items.map((eq, idx) => `
-        <div class="ecard">
-          <div class="ec-head">
-            <div class="ec-left"><span class="ec-no">${idx + 1}</span><div class="ec-name">${eq.type}</div><div class="ec-spec">${eq.spec}</div></div>
-            <button class="btn btn-sm btn-orange" onclick="editEquipment('${floor}', ${eq.id})">編集</button>
-          </div>
-          <div class="ec-body">
-            <div style="font-size:12px;color:#718096;margin:8px 0">設置場所: ${eq.location || '未入力'}</div>
-            <div style="font-size:12px;color:#718096;margin:8px 0">回路: ${eq.circuit || '未入力'}</div>
-            <div style="font-size:12px;color:#718096;margin:8px 0">数量: ${eq.count}</div>
-          </div>
-          <div class="ec-footer">
-            <span style="flex:1"></span>
-            <button class="btn btn-xs btn-red" onclick="deleteEquipment('${floor}', ${eq.id})">削除</button>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
-
-  function editEquipment(floor, id) {
-    const eq = dataStore.floors[floor].find(e => e.id === id);
-    if (!eq) return;
-    const form = `
-      <h3 style="margin-top:0">照明機器編集 - ${eq.type}</h3>
-      <div class="field">
-        <label>設置場所</label>
-        <input type="text" id="edit-location" value="${eq.location}" placeholder="例: 天井、壁、埋込み">
-      </div>
-      <div class="field">
-        <label>回路情報</label>
-        <input type="text" id="edit-circuit" value="${eq.circuit}" placeholder="例: B1-A3回路">
-      </div>
-      <div class="field">
-        <label>数量</label>
-        <input type="number" id="edit-count" value="${eq.count}" min="1">
-      </div>
-      <div class="field">
-        <label>備考</label>
-        <textarea id="edit-remarks" placeholder="特記事項など">${eq.remarks}</textarea>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-blue" style="flex:1" onclick="saveEquipmentEdit('${floor}', ${id})">保存</button>
-        <button class="btn btn-red" style="flex:1" onclick="closeModal()">キャンセル</button>
-      </div>
-    `;
-    document.getElementById('modal-content').innerHTML = form;
-    document.getElementById('modal').style.display = 'block';
-    document.getElementById('modal-backdrop').style.display = 'block';
-  }
-
-  function saveEquipmentEdit(floor, id) {
-    const eq = dataStore.floors[floor].find(e => e.id === id);
-    eq.location = document.getElementById('edit-location').value;
-    eq.circuit = document.getElementById('edit-circuit').value;
-    eq.count = parseInt(document.getElementById('edit-count').value) || 1;
-    eq.remarks = document.getElementById('edit-remarks').value;
-    closeModal();
-    editFloor(floor);
-  }
-
-  function deleteEquipment(floor, id) {
-    if (!confirm('削除してもよろしいですか？')) return;
-    dataStore.floors[floor] = dataStore.floors[floor].filter(e => e.id !== id);
-    editFloor(floor);
-  }
-
-  function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-    document.getElementById('modal-backdrop').style.display = 'none';
-  }
-
-  function showToast(msg, type = 'ok') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type} show`;
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
-  }
-
-  document.getElementById('btn-export').addEventListener('click', () => {
-    const workbook = XLSX.utils.book_new();
-    const worksheets = {};
-    for (const [floor, items] of Object.entries(dataStore.floors)) {
-      const data = items.map(e => [floor, e.type, e.spec, e.location, e.circuit, e.count, e.remarks]);
-      worksheets[floor] = XLSX.utils.aoa_to_sheet([['階層', '種類', '仕様', '設置場所', '回路', '数量', '備考'], ...data]);
-    }
-    for (const [name, sheet] of Object.entries(worksheets)) {
-      XLSX.utils.book_append_sheet(workbook, sheet, name);
-    }
-    XLSX.writeFile(workbook, `${dataStore.name || '調査'}_照明.xlsx`);
-    showToast('ファイルをダウンロードしました', 'ok');
-  });
-
-  document.getElementById('modal-backdrop').addEventListener('click', closeModal);
-
-  initApp();
-</script>
-</body>
-</html>
-led{background:#a0aec0;cursor:not-allowed;transform:none}
-.ecard{border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:10px;overflow:hidden}
-.ec-head{padding:10px 14px;background:#f0f9ff;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #e2e8f0;gap:8px}
-.ec-left{flex:1;min-width:0}
-.ec-no{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#2b6cb0;color:#fff;margin-right:6px}
-.ec-sec{font-size:12px;color:#718096}
-.ec-name{font-weight:700;font-size:15px;color:#2d3748;margin-top:2px}
-.ec-spec{font-size:12px;color:#718096;margin-top:2px}
-.ec-body{padding:10px 14px}
-.efl-block{background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px}
-.efl-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.efl-head select{flex:1}
-.ec-footer{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid #e2e8f0;background:#fafafa}
-.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;margin:2px}
-.t-rain{background:#fed7d7;color:#c53030}
-.t-high{background:#feebc8;color:#7b341e}
-.t-led{background:#c6f6d5;color:#276749}
-.t-ins{background:#bee3f8;color:#2c5282}
-.badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#e53e3e;color:#fff;font-size:11px;font-weight:700}
-.empty{text-align:center;padding:24px;color:#a0aec0;font-size:14px}
-.divider{height:1px;background:#e2e8f0;margin:12px 0}
-.sep{text-align:center;font-size:12px;color:#a0aec0;margin:8px 0;position:relative}
-.sep::before,.sep::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e2e8f0}
-.sep::before{left:0}.sep::after{right:0}
-.add-mode-btn{font-size:12px;color:#4299e1;background:none;border:none;cursor:pointer;padding:2px 0;font-weight:700}
-.cnt-btn{width:32px;height:32px;border:1.5px solid #e2e8f0;border-radius:6px;background:#f7fafc;font-size:18px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4a5568;touch-action:manipulation;}
-.cnt-btn:active{background:#e2e8f0;}
-.editing-card{background:#fff7ed !important;border:2px solid #ed8936 !important;}
-.editing-banner{background:#feebc8;color:#7b341e;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;margin-bottom:10px;display:none}
-.editing-banner.show{display:block}
-
-
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:10px 16px;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06)}
-.bb-inner{max-width:640px;margin:0 auto}
-.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#2d3748;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none}
-.toast.show{opacity:1}
-.toast.ok{background:#38a169}
-.toast.err{background:#e53e3e}
-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
- 
- 
+  <div class="logo-wrap"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAADKQAAADcCAQAAABe11ChAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfqAx4LAA5ngAreAAA2U0lEQVR42u3d7XHqyrbu8WfdWglohSCHIEKAECAEEQKEACGgEEwIEAIKwQrhKIR9P2DP6RcwYEs9enT/f1Wn7q5z6m5rgtDLeLrH+Od/G4XTqQn418IrVKuwPog77dUG/oul6lH/+1vtA/+LPAv3u0/9Vy9JpcrX/zS1PhQj/Z/rSave+mAS8nZmFaqsD8W5cNeh+s/VIIR1wL9lYeXmmYonEAvV6/lRBv3V5emoo+nfD/m2is86dR/+37SlWhnhN5SDJovf6HdS/f0CiMw///tfwL921Mz6HzyiSjs3xa6tQfllqkOC/yqvwv3uU/zVF6o0lVTpbyEHf3Xq1KlXr9a49OLN25lVquDMGlS469AhaJz6T8C/FVqhZzfR9F5LIuQASlWv9918ly1YsX7CDvm2iu+8PeG1ahMt2aZaGeE3lINZ9u9dqf5+AUTmX+sDSMZcOidlr17rRPPzlQotrQ8CyTqXcEpVrH294ePq4PPLNpHKdef4hDML+KvSs5vfw1pb60NI2vneWxEuAxF4/4TXqVVnvlsJAAAgKIKUYWy0sj6EO7VaBm/qFU4tEaVgcFNNNXWz3yw21esn1+uoo46JrmD8mVJzTVlZDXxSa+OkaN5rQRFxNFNNNXcTqAG5OYcqK/Xaq9WefXkAACAHBCm/R/uJmNQqtUj834hQitcyt4+CXuwKzTWX1OpoMKMpNhQIgWt2I09UG06rBdHwCLj3Ap4UqiXttNeROAUAAKSOIOW3PLWf
+/* TEST EXECUTION */
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=number],input[type=time],select,textarea{
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:15px;font-family:inherit;background:#f7fafc;-webkit-appearance:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;background:#fff}
+.uw{display:flex;align-items:center;gap:6px}
+.uw input{flex:1}
+.unit{color:#718096;font-size:13px;white-space:nowrap}
+.tgroup{display:flex;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.tbtn{flex:1;padding:10px 6px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;background:#f7fafc;color:#718096;border:none;transition:all .15s;line-height:1.2;touch-action:manipulation}
+.tbtn.act-in{background:#c6f6d5;color:#276749}
+.tbtn.act-out{background:#fed7d7;color:#c53030}
+.tbtn.act-yes{background:#feebc8;color:#7b341e}
+.tbtn.act-no{background:#c6f6d5;color:#276749}
+.tbtn.act-common{background:#c6f6d5;color:#276749}
+.tbtn.act-special{background:#feebc8;color:#7b341e}
+.tbtn.act-unk{background:#e2e8f0;color:#4a5568}
+.cmt{margin-top:6px;display:none}
+.cmt.show{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;cursor:pointer;background:#f7fafc;user-select:none;font-weight:600;transition:all .15s}
+.chip.on{border-color:#4299e1;background:#ebf8ff;color:#2b6cb0}
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.lib-item{border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;cursor:pointer;background:#f7fafc;transition:all .15s}
+.lib-item.sel{border-color:#4299e1;background:#ebf8ff}
+.lib-item .ln{font-weight:700;font-size:13px;color:#2d3748}
