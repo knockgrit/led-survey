@@ -176,6 +176,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
   <div class="field">
     <label>分電盤（解錠方法）</label>
     <div class="tgroup">
+      <button class="tbtn" id="db-noloc"   onclick="setDb('nolock')">鍵不要</button>
       <button class="tbtn" id="db-common"  onclick="setDb('common')">共通キーで可</button>
       <button class="tbtn" id="db-special" onclick="setDb('special')">専用鍵が必要</button>
       <button class="tbtn" id="db-unk"     onclick="setDb('unk')" style="flex:.7;font-size:11px">不明</button>
@@ -469,7 +470,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
   <div id="normal-fields" style="display:none">
     <div class="field" id="normal-lamp-field">
-      <label id="lamp-label">ランプ種別<span class="req">*</span></label>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <label id="lamp-label" style="margin:0">ランプ種別<span class="req">*</span></label>
+        <label id="water-cap-wrap" style="display:none;gap:4px;cursor:pointer;font-size:13px;align-items:center"><input type="checkbox" id="water-cap-chk" onchange="toggleWaterCap()">防水キャップあり <span onclick="event.preventDefault();document.getElementById('watercap-modal').style.display='flex'" style="color:#3182ce;text-decoration:underline;font-size:12px;cursor:pointer">(?)</span></label>
+      </div>
       <div id="lamp-select-wrap">
         <select id="lamp-type" onchange="onLampType()" style="width:100%;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc;margin-bottom:4px"></select>
       </div>
@@ -724,6 +728,36 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 <div class="toast" id="toast"></div>
 
 <!-- ヘルプモーダル -->
+<div id="watercap-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:12px;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:14px;max-width:440px;width:100%;max-height:80vh;overflow-y:auto;padding:20px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">防水キャップとは？</h3>
+      <button onclick="document.getElementById('watercap-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#718096">&times;</button>
+    </div>
+    <div style="background:#ebf8ff;border-radius:10px;padding:14px;margin-bottom:14px">
+      <p style="margin:0 0 10px;font-size:14px;line-height:1.7">蛍光灯の<b>口金（両端）</b>に付いているゴム製またはシリコン製の<b>防水用キャップ</b>のことです。</p>
+      <p style="margin:0;font-size:14px;line-height:1.7">屋外や湿気の多い場所で使用される直管蛍光灯に取り付けられ、口金部分への水の浸入を防ぎます。</p>
+    </div>
+    <div style="background:#f7fafc;border-radius:10px;padding:14px;margin-bottom:10px">
+      <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#2d3748">確認ポイント</p>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <span style="font-size:18px;flex-shrink:0">👉</span>
+        <span style="font-size:13px;line-height:1.6">ランプの<b>両端（口金部分）</b>にキャップ状のカバーがあるか確認してください</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <span style="font-size:18px;flex-shrink:0">👉</span>
+        <span style="font-size:13px;line-height:1.6">キャップは<b>透明・白・グレー</b>等の樹脂製で、口金を覆うように被さっています</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:18px;flex-shrink:0">👉</span>
+        <span style="font-size:13px;line-height:1.6">キャップがある場合は「<b>防水キャップあり</b>」にチェックを入れてください</span>
+      </div>
+    </div>
+    <div style="text-align:center;padding:8px;background:#fffbeb;border-radius:8px;font-size:12px;color:#744210">
+      ※ 屋外カバー付器具に多く見られます
+    </div>
+  </div>
+</div>
 <div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;padding:12px;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:20px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:sticky;top:-20px;background:#fff;padding:8px 0;z-index:1">
@@ -882,7 +916,7 @@ function copyModalText(){
     try{document.execCommand('copy');const btn=document.getElementById('copy-modal-btn');if(btn){btn.textContent='✅ コピーしました！';setTimeout(()=>{btn.textContent='📋 コピーする';},2000);}}catch(e){alert('テキストエリアを長押し→「すべて選択」→「コピー」してください');}
   }
 }
-const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ抜き','ランプ切れ','人感センサー連動(建物側）','人感センサー付器具','自動点滅器付き器具'];
+const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ抜き','ランプ切れ','使用感（使用形跡）なし','人感センサー連動(建物側）','人感センサー付器具','自動点滅器付き器具'];
 const FLOORS=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
 
 function confirmDel(eid){
@@ -922,6 +956,7 @@ let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt
 let senyuSt=false,ledSt='',ledTypeSt='',bypassSt='';
 let altLampEnabled=false,altLampLamp='',altLampWatt='';
 let fnameSubSt='',fnameSensorSt='',fnameCircuitSt='',fnameFootSt='',poleInstallSt='';
+let waterCapSt=false;
 let recentSections=[];
 let recentLamps=[];
 let uncheckedAreas=[];
@@ -934,9 +969,10 @@ function highlightErr(id){const el=document.getElementById(id);if(!el)return;el.
 
 function setDb(v){
   dbSt=v;
-  ['common','special','unk'].forEach(k=>{
-    const cls=v===k?({'common':'act-common','special':'act-special','unk':'act-unk'}[k]):'';
-    document.getElementById('db-'+k).className='tbtn'+(cls?' '+cls:'');
+  ['nolock','common','special','unk'].forEach(k=>{
+    const cls=v===k?({'nolock':'act-common','common':'act-common','special':'act-special','unk':'act-unk'}[k]):'';
+    const el=document.getElementById('db-'+(k==='nolock'?'noloc':k));
+    if(el)el.className='tbtn'+(cls?' '+cls:'');
   });
   document.getElementById('db-cmt').classList.toggle('show',v==='special');
   saveLS();
@@ -1310,7 +1346,12 @@ function onFnameType(){
   if(v!=='foot'){fnameFootSt='';['wall','ground'].forEach(k=>{const b=document.getElementById('ff-'+k);if(b)b.classList.remove('act-in');});}
   // Default: spot/flood → 建物回路を選択状態
   if(v==='spot'||v==='flood'){if(!fnameCircuitSt){fnameCircuitSt='building';const b=document.getElementById('fc-building');if(b)b.classList.add('act-in');}}
+  // 防水キャップ：蛍光灯（直管使用）のみ表示
+  const wcWrap=document.getElementById('water-cap-wrap');
+  if(wcWrap)wcWrap.style.display=(v==='fl')?'flex':'none';
+  if(v!=='fl'){waterCapSt=false;const wc=document.getElementById('water-cap-chk');if(wc)wc.checked=false;}
 }
+function toggleWaterCap(){const chk=document.getElementById('water-cap-chk');waterCapSt=chk?chk.checked:false;saveLS();}
 function onFnameSub(){updateDimLabels();}
 // Button-style sub selection
 function setFnameSub(v){
@@ -1619,6 +1660,8 @@ function updateSecOpts(){
     const o=document.createElement('option');o.value=s;o.textContent=s;o.dataset.recent='1';
     sel.insertBefore(o,refNode);
   });
+  const gap=document.createElement('option');gap.disabled=true;gap.textContent='';gap.dataset.recent='1';
+  sel.insertBefore(gap,refNode);
 }
 // ── 登録済みライブラリ折りたたみ ──
 function toggleLib(){
@@ -1665,8 +1708,8 @@ function updateDimLabels(){
   const lblRectH=document.getElementById('lbl-rect-h');
   const lblRectW=document.getElementById('lbl-rect-w');
   const dimCNote=document.getElementById('dim-c-note');
-  if(lblPhiIn)lblPhiIn.innerHTML=isEmbed?'埋込穴Φ<span class="req">*</span>':'内径 Φ<span class="req">*</span>';
-  if(dimCNote)dimCNote.textContent=isEmbed?'※埋込穴Φは必須。外径は塗装やコーキングがある場合も隠せる径を入力':'※内径（埋込穴径）は必須。外径は塗装やコーキングがある場合も隠せる径を入力';
+  if(lblPhiIn)lblPhiIn.innerHTML=isEmbed?'埋込穴Φ<span class="req">*</span>':'設置面Φ<span class="req">*</span>';
+  if(dimCNote)dimCNote.textContent=isEmbed?'※埋込穴Φは必須。外径は塗装やコーキングがある場合も隠せる径を入力':'※設置面Φは必須。外径は塗装やコーキングがある場合も隠せる径を入力';
   if(lblSide)lblSide.textContent=isEmbed?'埋込穴□':'設置面 □';
   if(lblRectH)lblRectH.textContent=isEmbed?'埋込穴縦':'設置面 縦';
   if(lblRectW)lblRectW.textContent=isEmbed?'埋込穴横':'設置面 横';
@@ -1676,7 +1719,7 @@ function getDim(){
   let s='';
   const _ft=gv('fname-type'),_sub=fnameSubSt||'';
   const _isEmbed=(_ft==='dl'||_ft==='rd'||(_ft==='sq'&&_sub==='埋込形'));
-  if(v==='c'){const out=gv('dphi-out'),inn=gv('dphi-in');s=inn?(_isEmbed?'埋込穴Φ':'内径Φ')+inn+'mm':'';if(out)s+=(s?'　':'')+'外径Φ'+out+'mm';}
+  if(v==='c'){const out=gv('dphi-out'),inn=gv('dphi-in');s=inn?(_isEmbed?'埋込穴Φ':'設置面Φ')+inn+'mm':'';if(out)s+=(s?'　':'')+'外径Φ'+out+'mm';}
   else if(v==='s'){const d=gv('dside'),mx=gv('dside-max');s=d?(_isEmbed?'埋込穴□':'□')+d+'mm':'';if(mx)s+='（最大外径□'+mx+'mm）';}
   else if(v==='r'){const h=gv('dh'),w=gv('dw'),mxh=gv('drect-max-h'),mxw=gv('drect-max-w');const _hp=_isEmbed?'埋込穴縦':'縦',_wp=_isEmbed?'埋込穴横':'横';s=[h?_hp+h+'mm':'',w?_wp+w+'mm':''].filter(Boolean).join('×');const mxp=[mxh?'縦'+mxh+'mm':'',mxw?'横'+mxw+'mm':''].filter(Boolean).join('×');if(mxp)s+='（最大外径'+mxp+'）';}
   else if(v==='f')s=gv('dfree');
@@ -1779,7 +1822,7 @@ function renderFloorRows(rows,fid,eid,showCt=true,isAlt=false){
         ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCCAlt(${fid},${row.id},String(v));})()`
         :`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
       if(showCt){
-        const ctOpts=`<option value="">色温度</option><option${row.ct==='昼白色(N)'?' selected':''}>昼白色(N)</option><option${row.ct==='白色(W)'?' selected':''}>白色(W)</option><option${row.ct==='昼光色(D)'?' selected':''}>昼光色(D)</option><option${row.ct==='電球色(L)'?' selected':''}>電球色(L)</option><option${row.ct==='温白色(WW)'?' selected':''}>温白色(WW)</option><option${row.ct==='不明'?' selected':''}>不明</option>`;
+        const ctOpts=`<option value="">色温度</option><option${row.ct==='昼白色(N)'?' selected':''}>昼白色(N)</option><option${row.ct==='電球色(L)'?' selected':''}>電球色(L)</option><option${row.ct==='白色(W)'?' selected':''}>白色(W)</option><option${row.ct==='昼光色(D)'?' selected':''}>昼光色(D)</option><option${row.ct==='温白色(WW)'?' selected':''}>温白色(WW)</option><option${row.ct==='不明'?' selected':''}>不明</option>`;
         html+=`<div class="mode-row" style="margin-bottom:2px;padding-left:4px">
           <select onchange="${ctChg}" style="flex:none;width:100px;font-size:13px">${ctOpts}</select>
           <div class="cnt-wrap">
@@ -1882,7 +1925,7 @@ function applyAllSame(checked){
 function fRFloor(fid){fFloors=fFloors.filter(f=>f.id!==fid);renderFF();}
 function fFloorChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.floor=v;}
 function fMemoChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.memo=v;}
-function fAddRow(fid){const f=fFloors.find(f=>f.id===fid);if(f){const newMode=senyuSt?'専有回路':'';f.rows.push({id:nextMid++,mode:newMode,count:'',timer:defTimer(),ct:''});}renderFF();}
+function fAddRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;if(!senyuSt&&f.rows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const newMode=senyuSt?'専有回路':'';f.rows.push({id:nextMid++,mode:newMode,count:'',timer:defTimer(),ct:''});renderFF();}
 // ── 別ランプ (Alt) 用関数群 ──
 function toggleAltLamp(){
   altLampEnabled=!altLampEnabled;
@@ -1892,7 +1935,7 @@ function toggleAltLamp(){
   else{altLampLamp='';altLampWatt='';const an=document.getElementById('alt-lamp-name');if(an)an.value='';const aw=document.getElementById('alt-lamp-watt');if(aw)aw.value='';}
   renderFF();
 }
-function fAddAltRow(fid){const f=fFloors.find(f=>f.id===fid);if(f){if(!f.altRows)f.altRows=[];const nm=senyuSt?'専有回路':'';f.altRows.push({id:nextMid++,mode:nm,count:'',timer:defTimer(),ct:''});}renderFF();}
+function fAddAltRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;if(!f.altRows)f.altRows=[];if(!senyuSt&&f.altRows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const nm=senyuSt?'専有回路':'';f.altRows.push({id:nextMid++,mode:nm,count:'',timer:defTimer(),ct:''});renderFF();}
 function fAddColorRowAlt(fid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'';const lastIdx=f.altRows.reduce((li,r,i)=>r.mode===mode?i:li,-1);const newRow={id:nextMid++,mode,count:'',timer:defTimer(),ct:''};if(lastIdx>=0)f.altRows.splice(lastIdx+1,0,newRow);else f.altRows.push(newRow);renderFF();}
 function fRModeGroupAlt(fid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'__none__';f.altRows=f.altRows.filter(r=>r.mode!==mode);if(!f.altRows.length)f.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];renderFF();}
 function fMCGroupAlt(fid,firstRowId,v){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);if(!ref)return;const oldMode=ref.mode;const t=autoTimer(v);f.altRows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});renderFF();}
@@ -2077,7 +2120,7 @@ function regEntry(){
         if(!_sh){toast('器具寸法の形状を選択してください','err');highlightErr('shape');return;}
         if(_sh==='p'&&!poleTypeSt){toast('ポール種別を選択してください','err');return;}
         const _ft2=gv('fname-type'),_sub2=fnameSubSt||'';const _iE2=(_ft2==='dl'||_ft2==='rd'||(_ft2==='sq'&&_sub2==='埋込形'));
-        if(_sh==='c'&&!gv('dphi-in')){toast('器具寸法（'+(_iE2?'埋込穴Φ':'内径Φ')+'）を入力してください','err');highlightErr('dphi-in');return;}
+        if(_sh==='c'&&!gv('dphi-in')){toast('器具寸法（'+(_iE2?'埋込穴Φ':'設置面Φ')+'）を入力してください','err');highlightErr('dphi-in');return;}
         if(_sh==='s'&&!gv('dside')){toast('器具寸法（'+(_iE2?'埋込穴□':'設置面□')+'）を入力してください','err');highlightErr('dside');return;}
         if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');if(!gv('dh'))highlightErr('dh');else highlightErr('dw');return;}
         if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');highlightErr('dfree');return;}
@@ -2105,6 +2148,12 @@ function regEntry(){
       }
     }
   }
+  // 台数0で色温度のみ選択チェック
+  for(const _f of fFloors){
+    for(const _r of _f.rows){
+      if(_r.ct&&(!_r.count||Number(_r.count)===0)){toast('台数入力のない色温度箇所があります','err');return;}
+    }
+  }
   if(!fFloors.length){toast('フロア情報を追加してください','err');return;}
   const isEonly=fixTypeSt==='eonly';
   for(const f of fFloors){
@@ -2128,7 +2177,8 @@ function regEntry(){
     altLamp:altLampEnabled?{lamp:altLampLamp,watt:altLampWatt}:null,
     sensor:fnameSensorSt==='other'?(document.getElementById('fname-sensor-other')?document.getElementById('fname-sensor-other').value:'その他'):({'motion':'人感センサー付','light':'明暗センサー付'}[fnameSensorSt]||''),
     circuit:{'building':'建物回路','ac':'AC回路'}[fnameCircuitSt]||'',
-    footType:{'wall':'壁面埋込','ground':'地面埋込'}[fnameFootSt]||''};
+    footType:{'wall':'壁面埋込','ground':'地面埋込'}[fnameFootSt]||'',
+    waterCap:waterCapSt};
   sortByFloor(fFloors);
   const wasEditing=editingId!==null;
   const eid2=wasEditing?editingId:nextId++;
@@ -2197,6 +2247,7 @@ function editEntry(eid){
 function clearForm(){
   ['watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo','fname-sub-other','fname-sensor-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   fnameSubSt='';fnameSensorSt='';fnameCircuitSt='';fnameFootSt='';poleInstallSt='';
+  waterCapSt=false;const _wcb=document.getElementById('water-cap-chk');if(_wcb)_wcb.checked=false;
   wattUnknownSt=false;const _wub=document.getElementById('watt-unknown-chk');if(_wub)_wub.checked=false;const _wi=document.getElementById('watt');if(_wi)_wi.disabled=false;
   ledWattUnknownSt=false;const _lwub=document.getElementById('led-watt-unknown-chk');if(_lwub)_lwub.checked=false;const _lwi=document.getElementById('led-watt');if(_lwi)_lwi.disabled=false;
   ledLwattUnknownSt=false;const _llwub=document.getElementById('led-lwatt-unknown-chk');if(_llwub)_llwub.checked=false;const _llwi=document.getElementById('led-lwatt');if(_llwi)_llwi.disabled=false;
@@ -2250,7 +2301,7 @@ function clearForm(){
   const _altFldsR=document.getElementById('alt-lamp-fields');if(_altFldsR)_altFldsR.style.display='none';
   const _altNmR=document.getElementById('alt-lamp-name');if(_altNmR)_altNmR.value='';
   const _altWtR=document.getElementById('alt-lamp-watt');if(_altWtR)_altWtR.value='';
-  fFloors=[{id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''}];renderFF();
+  fFloors=[];renderFF();
 }
 
 // ── エントリー：インライン編集 ──
@@ -2263,7 +2314,7 @@ function eCC(eid,fid,mid,v){const f=findF(eid,fid),r=findR(eid,fid,mid);if(r){r.
 function eTC(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r)r.timer=v;}
 function eFlChg(eid,fid,v){const f=findF(eid,fid);if(f)f.floor=v;}
 function eMemoChg(eid,fid,v){const f=findF(eid,fid);if(f)f.memo=v;}
-function eAddRow(eid,fid){const f=findF(eid,fid);if(f)f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);updateECardWarns(eid);}
+function eAddRow(eid,fid){const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>!r.mode)){toast('現在の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);updateECardWarns(eid);}
 function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderEF(eid);updateECardWarns(eid);}
 function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:''});}renderEF(eid);}
 function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
@@ -2426,6 +2477,8 @@ function applyFix(fix){
     if(fix.footType==='壁面埋込')setFnameFootType('wall');
     else if(fix.footType==='地面埋込')setFnameFootType('ground');
   }
+  // 防水キャップ復元
+  waterCapSt=!!fix.waterCap;const _wcbA=document.getElementById('water-cap-chk');if(_wcbA)_wcbA.checked=waterCapSt;
   // 誘導灯の設定を復元
   if(fix.fixType==='guide'&&fix.guide){
     const g=fix.guide;
@@ -2495,7 +2548,7 @@ function renderEntries(){
     if(f.high==='yes')tags.push('<span class="tag t-high">高所あり</span>');
     if(f.led||(f.fixType==='guide'&&f.guide?.led)){tags.push('<span class="tag t-led">LED器具</span>');}
     if(f.lled){tags.push('<span class="tag t-led">旧/LEDランプ</span>');}
-    const spec=[f.dim,f.lamp,f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
+    const spec=[f.dim,f.lamp,f.waterCap?'防水キャップあり':'',f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
     const altSpec=f.altLamp?`追加ランプ：${f.altLamp.lamp||''}${f.altLamp.watt?' '+f.altLamp.watt+'W':''}`:''
     const _missingWarns=[];
     if(e.fix.fixType!=='eonly'&&e.fix.fixType!=='guide'){
@@ -2548,7 +2601,7 @@ function doExport(){
   const bldg=gv('bldg')||'（未入力）';
   const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
   const hn=gv('hn');
-  const dbL={'common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
+  const dbL={'nolock':'鍵不要','common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
   const dbC=gv('db-cmt-v');
 
   const ws={};
@@ -2576,7 +2629,7 @@ function doExport(){
     sc(RS,col,ent.section);mg(RS,col,RS,ec);
     sc(RNM,col,getDisplayName(f));mg(RNM,col,RNM,ec);
     sc(RD,col,f.dim||'');mg(RD,col,RD,ec);
-    sc(RL,col,f.lamp||'');mg(RL,col,RL,ec);
+    sc(RL,col,(f.lamp||'')+(f.waterCap?' [防水Cap]':''));mg(RL,col,RL,ec);
     sc(RW,col,[f.watt?f.watt+'W':'',f.ct].filter(Boolean).join(' / '));mg(RW,col,RW,ec);
     const rr={in:'雨線内',out:'雨線外',unk:'未確認','':'―'}[f.rain]||'―';
     sc(RR,col,rr+(f.rainC?'（'+f.rainC+'）':''));mg(RR,col,RR,ec);
@@ -2624,7 +2677,7 @@ function doExport(){
         const t1s2=gv('t1s'),t1e2=gv('t1e'),t2s2=gv('t2s'),t2e2=gv('t2e');
         const timerLbl=r.mode==='タイマー'?(r.timer==='2'?'タイマー②':'タイマー①'):'';
         const timerTime=r.mode==='タイマー'?(r.timer==='2'&&t2s2&&t2e2?t2s2+'〜'+t2e2:(t1s2&&t1e2?t1s2+'〜'+t1e2:'')):'';
-        rows.push([idx+1,ent.section,f.name,f.dim||'',f.lamp||'',f.ct||'',f.watt||'',rl,f.rainC||'',hl,(f.highH?'約'+f.highH+'m　':''+(f.highC||'')),ls,fl.floor,timerLbl||r.mode,r.count,timerTime,fl.memo]);
+        rows.push([idx+1,ent.section,f.name,f.dim||'',(f.lamp||'')+(f.waterCap?' [防水Cap]':''),f.ct||'',f.watt||'',rl,f.rainC||'',hl,(f.highH?'約'+f.highH+'m　':''+(f.highC||'')),ls,fl.floor,timerLbl||r.mode,r.count,timerTime,fl.memo]);
       });
     });
   });
@@ -2669,7 +2722,7 @@ async function doEmailSend(){
   const bldg=gv('bldg')||'（未入力）';
   const t1s=gv('t1s'),t1e=gv('t1e'),t2s=gv('t2s'),t2e=gv('t2e');
   const hn=gv('hn');
-  const dbL={'common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
+  const dbL={'nolock':'鍵不要','common':'共通キーで可','special':'専用鍵が必要','unk':'不明','':''}[dbSt]||'';
   const dbC=gv('db-cmt-v');
   const d=new Date();
   const dateStr=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
@@ -2747,7 +2800,7 @@ async function doEmailSend(){
     if(_circuitLbl)txt+=`  回路種別：${_circuitLbl}\n`;
     if(_footLbl)txt+=`  設置タイプ：${_footLbl}\n`;
     if(f.dim){let _dim=f.dim.replace(/(\d+)\s*[φΦ]\s*/g,'Φ$1');_dim=_dim.replace(/(.+?)(\d+)mm×(.+?)(\d+)mm/,(m,p1,n1,p2,n2)=>{const a=Number(n1),b=Number(n2);return a<=b?m:p2+n2+'mm×'+p1+n1+'mm';});txt+=`  寸法：${_dim}\n`;}
-    if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}\n`;
+    if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}${f.waterCap?' (防水キャップあり)':''}\n`;
     if(!f.led&&f.watt)txt+=`  消費電力：${f.watt==='未確認'?'未確認':f.watt+'W'}\n`;
     if(f.rain==='out'||f.rain==='unk'){
       const rr={out:'雨線外',unk:'未確認','':''}[f.rain]||'';
@@ -2904,7 +2957,6 @@ if(loadLS()){
   }
 }
 renderUnchecked();
-fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:'',ct:''}],memo:''});
 renderFF();
 </script>
 
