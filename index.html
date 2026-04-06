@@ -301,6 +301,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
           <button class="tbtn" id="gd-left"  onclick="setGuideDir('left')">左</button>
           <button class="tbtn" id="gd-right" onclick="setGuideDir('right')">右</button>
           <button class="tbtn" id="gd-both"  onclick="setGuideDir('both')">右左</button>
+          <button class="tbtn" id="gd-other" onclick="setGuideDir('other')">その他</button>
+        </div>
+        <div id="guide-dir-other-wrap" style="display:none;margin-top:6px">
+          <input type="text" id="guide-dir-other" placeholder="例：非常口、非常階段" style="width:100%">
         </div>
       </div>
       <div class="field" id="guide-dir-b-field" style="display:none">
@@ -316,7 +320,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div id="guide-led-detail" style="display:none">
       <div class="field">
         <label>製造年数</label>
-        <input type="text" id="guide-year" placeholder="例：2018年製">
+        <input type="number" id="guide-year" placeholder="例：2018">
       </div>
     </div>
     <!-- 設置位置 -->
@@ -327,12 +331,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
         <button class="tbtn" id="gip-wall" onclick="setGuideInstallPos('wall')">壁面</button>
         <button class="tbtn" id="gip-hang" onclick="setGuideInstallPos('hang')">吊下げ</button>
       </div>
+      <div id="guide-install-type-wrap" style="display:none;margin-top:6px">
+        <div class="tgroup">
+          <button class="tbtn act-in" id="git-direct" onclick="setGuideInstallType('direct')">直付</button>
+          <button class="tbtn" id="git-embed" onclick="setGuideInstallType('embed')">埋込</button>
+        </div>
+      </div>
     </div>
     <!-- 吊下げ高（吊下げ時のみ） -->
     <div class="field" id="guide-hang-field" style="display:none">
       <label>吊下げ高</label>
       <div class="uw">
-        <input type="text" id="guide-hang-h" placeholder="例：2500">
+        <input type="number" id="guide-hang-h" placeholder="例：2500">
         <span class="unit">mm</span>
       </div>
     </div>
@@ -346,14 +356,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       </div>
       <div id="gsz-rect-fields" style="display:none">
         <div class="r2">
-          <div class="uw"><input type="text" id="gsz-rect-h" placeholder="縦"><span class="unit">mm</span></div>
-          <div class="uw"><input type="text" id="gsz-rect-w" placeholder="横"><span class="unit">mm</span></div>
+          <div class="uw"><input type="number" id="gsz-rect-h" placeholder="縦"><span class="unit">mm</span></div>
+          <div class="uw"><input type="number" id="gsz-rect-w" placeholder="横"><span class="unit">mm</span></div>
         </div>
       </div>
       <div id="gsz-circ-fields" style="display:none">
         <div class="uw">
           <span class="unit">Φ</span>
-          <input type="text" id="gsz-circ-phi" placeholder="例：200">
+          <input type="number" id="gsz-circ-phi" placeholder="例：200">
           <span class="unit">mm</span>
         </div>
       </div>
@@ -385,14 +395,24 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
     <!-- 一体形の場合 -->
     <div id="led-ittai-fields">
-      <div class="r2">
-        <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-watt" placeholder="例：16.5"><span class="unit">W</span></div></div>
-        <div class="field"><label>製造年数</label><input type="text" id="led-year" placeholder="例：2018年製"></div>
+      <div class="field">
+        <label>ランプ消費電力<span class="req">*</span></label>
+        <div class="uw" style="gap:6px;flex-wrap:wrap">
+          <div class="uw" style="gap:4px"><input type="number" id="led-watt" placeholder="例：16.5" style="width:130px"><span class="unit">W</span></div>
+          <label class="uw" style="gap:4px;cursor:pointer;font-size:13px"><input type="checkbox" id="led-watt-unknown-chk" onchange="toggleLedWattUnknown()">未確認</label>
+        </div>
       </div>
+      <div class="field"><label>製造年数</label><input type="number" id="led-year" placeholder="例：2018"></div>
     </div>
     <!-- ランプ交換可能型の場合 -->
     <div id="led-lamp-fields" style="display:none">
-      <div class="field"><label>ランプ消費電力</label><div class="uw"><input type="number" id="led-lwatt" placeholder="例：10"><span class="unit">W</span></div></div>
+      <div class="field">
+        <label>ランプ消費電力<span class="req">*</span></label>
+        <div class="uw" style="gap:6px;flex-wrap:wrap">
+          <div class="uw" style="gap:4px"><input type="number" id="led-lwatt" placeholder="例：10" style="width:130px"><span class="unit">W</span></div>
+          <label class="uw" style="gap:4px;cursor:pointer;font-size:13px"><input type="checkbox" id="led-lwatt-unknown-chk" onchange="toggleLedLwattUnknown()">未確認</label>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -477,8 +497,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field" id="normal-watt-field">
       <label>消費電力<span class="req">*</span></label>
       <div class="uw" style="gap:6px;flex-wrap:wrap">
-        <div class="uw" style="gap:4px"><input type="number" id="watt" placeholder="例：16.5" style="width:90px"><span class="unit">W</span></div>
-        <button class="tbtn" id="watt-unknown-btn" onclick="toggleWattUnknown()" style="font-size:12px;padding:4px 10px">未確認</button>
+        <div class="uw" style="gap:4px"><input type="number" id="watt" placeholder="例：16.5" style="width:130px"><span class="unit">W</span></div>
+        <label class="uw" style="gap:4px;cursor:pointer;font-size:13px"><input type="checkbox" id="watt-unknown-chk" onchange="toggleWattUnknown()">未確認</label>
       </div>
       <div style="margin-top:4px;font-size:11px;color:#e53e3e;">※器具側型番記載の消費電力。ランプが異なる場合はランプ記載の消費電力を入力</div>
     </div>
@@ -652,6 +672,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
   </div>
 
+  <div class="field" id="fix-memo-field" style="display:none">
+    <label>器具備考</label>
+    <textarea id="fix-memo" placeholder="特記事項など（例：器具一部破損あり）" rows="2" style="resize:none"></textarea>
+  </div>
+
   <div class="divider"></div>
 
   <div>
@@ -677,11 +702,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       <input type="checkbox" id="all-same-chk" onchange="applyAllSame(this.checked)" style="width:16px;height:16px;touch-action:manipulation">
       <span style="font-size:12px">全フロア共通（現在表示中の全フロアの台数・点灯方式・色温度を一番上のフロア情報に統一する）</span>
     </label>
-  </div>
-
-  <div class="field" id="fix-memo-field" style="display:none">
-    <label>器具備考</label>
-    <textarea id="fix-memo" placeholder="特記事項など（例：器具一部破損あり）" rows="2" style="resize:none"></textarea>
   </div>
 
   <button type="button" id="reg-btn" class="btn btn-green btn-full" onclick="regEntry()" style="margin-top:14px;opacity:0.4;cursor:not-allowed" disabled>✓ この器具を登録する（フロアを追加してください）</button>
@@ -745,14 +765,27 @@ function sortByFloor(floors){floors.sort((a,b)=>{if(!a.floor)return 1;if(!b.floo
 let _lastRegMs=0;
 let rainSt='',highSt='',dbSt='',fixTypeSt='',emgMountSt='',emgWattSt='',emgWaterSt='',emgSizeSt='';
 let wattUnknownSt=false;
+let ledWattUnknownSt=false;
+let ledLwattUnknownSt=false;
 function toggleWattUnknown(){
-  wattUnknownSt=!wattUnknownSt;
-  const btn=document.getElementById('watt-unknown-btn');
+  const chk=document.getElementById('watt-unknown-chk');
+  wattUnknownSt=chk?chk.checked:false;
   const inp=document.getElementById('watt');
-  if(btn)btn.classList.toggle('act-in',wattUnknownSt);
   if(inp){inp.disabled=wattUnknownSt;if(wattUnknownSt)inp.value='';}
 }
-let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt='',guideDirBSt='',guideInstallPosSt='',guideSizeSt='';
+function toggleLedWattUnknown(){
+  const chk=document.getElementById('led-watt-unknown-chk');
+  ledWattUnknownSt=chk?chk.checked:false;
+  const inp=document.getElementById('led-watt');
+  if(inp){inp.disabled=ledWattUnknownSt;if(ledWattUnknownSt)inp.value='';}
+}
+function toggleLedLwattUnknown(){
+  const chk=document.getElementById('led-lwatt-unknown-chk');
+  ledLwattUnknownSt=chk?chk.checked:false;
+  const inp=document.getElementById('led-lwatt');
+  if(inp){inp.disabled=ledLwattUnknownSt;if(ledLwattUnknownSt)inp.value='';}
+}
+let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt='',guideDirBSt='',guideInstallPosSt='',guideInstallTypeSt='',guideSizeSt='';
 let senyuSt=false,ledSt='',ledTypeSt='',bypassSt='';
 let altLampEnabled=false,altLampLamp='',altLampWatt='';
 let fnameSubSt='',fnameSensorSt='',fnameCircuitSt='',fnameFootSt='',poleInstallSt='';
@@ -857,7 +890,10 @@ function setGuidePanelColor(v){
 }
 function setGuideDir(v){
   guideDirSt=v;
-  ['left','right','both'].forEach(k=>document.getElementById('gd-'+k).classList.toggle('act-in',v===k));
+  ['left','right','both','other'].forEach(k=>{const b=document.getElementById('gd-'+k);if(b)b.classList.toggle('act-in',v===k);});
+  const otherWrap=document.getElementById('guide-dir-other-wrap');
+  if(otherWrap)otherWrap.style.display=(v==='other')?'block':'none';
+  if(v!=='other'){const oi=document.getElementById('guide-dir-other');if(oi)oi.value='';}
 }
 function setGuideDirB(v){
   guideDirBSt=v;
@@ -866,6 +902,14 @@ function setGuideDirB(v){
 function setGuideInstallPos(v){
   guideInstallPosSt=v;
   ['ceil','wall','hang'].forEach(k=>document.getElementById('gip-'+k).classList.toggle('act-in',v===k));
+  // 直付/埋込サブ選択：天井・壁面時のみ表示、デフォルト直付
+  const installTypeWrap=document.getElementById('guide-install-type-wrap');
+  if(installTypeWrap){
+    const showType=(v==='ceil'||v==='wall');
+    installTypeWrap.style.display=showType?'block':'none';
+    if(showType&&!guideInstallTypeSt){setGuideInstallType('direct');}
+    if(!showType){guideInstallTypeSt='';document.getElementById('git-direct').classList.add('act-in');document.getElementById('git-embed').classList.remove('act-in');}
+  }
   const hangField=document.getElementById('guide-hang-field');
   if(hangField)hangField.style.display=(v==='hang')?'block':'none';
   // 天井・壁面：長方形/丸形ボタンを非表示にし縦横フィールドを直接表示
@@ -896,6 +940,10 @@ function setGuideInstallPos(v){
     const grw=document.getElementById('gsz-rect-w');if(grw)grw.value='';
     const gcp=document.getElementById('gsz-circ-phi');if(gcp)gcp.value='';
   }
+}
+function setGuideInstallType(v){
+  guideInstallTypeSt=v;
+  ['direct','embed'].forEach(k=>{const b=document.getElementById('git-'+k);if(b)b.classList.toggle('act-in',v===k);});
 }
 function setGuideSizeShape(v){
   guideSizeSt=v;
@@ -1890,19 +1938,30 @@ function regEntry(){
   if(!sec){toast('設置場所を選択してください','err');highlightErr('sec');return;}
   if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');highlightErr('fname-type');return;}
   if(fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){
-    if(ledSt!=='led'){
-      const _sh=gv('shape');
-      if(!_sh){toast('器具寸法の形状を選択してください','err');highlightErr('shape');return;}
-      if(_sh==='p'&&!poleTypeSt){toast('ポール種別を選択してください','err');return;}
-      const _ft2=gv('fname-type'),_sub2=fnameSubSt||'';const _iE2=(_ft2==='dl'||_ft2==='rd'||(_ft2==='sq'&&_sub2==='埋込形'));
-      if(_sh==='c'&&!gv('dphi-in')){toast('器具寸法（'+(_iE2?'埋込穴Φ':'内径Φ')+'）を入力してください','err');highlightErr('dphi-in');return;}
-      if(_sh==='s'&&!gv('dside')){toast('器具寸法（'+(_iE2?'埋込穴□':'設置面□')+'）を入力してください','err');highlightErr('dside');return;}
-      if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');if(!gv('dh'))highlightErr('dh');else highlightErr('dw');return;}
-      if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');highlightErr('dfree');return;}
+    if(!senyuSt){
+      if(ledSt!=='led'){
+        const _sh=gv('shape');
+        if(!_sh){toast('器具寸法の形状を選択してください','err');highlightErr('shape');return;}
+        if(_sh==='p'&&!poleTypeSt){toast('ポール種別を選択してください','err');return;}
+        const _ft2=gv('fname-type'),_sub2=fnameSubSt||'';const _iE2=(_ft2==='dl'||_ft2==='rd'||(_ft2==='sq'&&_sub2==='埋込形'));
+        if(_sh==='c'&&!gv('dphi-in')){toast('器具寸法（'+(_iE2?'埋込穴Φ':'内径Φ')+'）を入力してください','err');highlightErr('dphi-in');return;}
+        if(_sh==='s'&&!gv('dside')){toast('器具寸法（'+(_iE2?'埋込穴□':'設置面□')+'）を入力してください','err');highlightErr('dside');return;}
+        if(_sh==='r'&&(!gv('dh')||!gv('dw'))){toast('器具寸法（長方形の縦・横）を入力してください','err');if(!gv('dh'))highlightErr('dh');else highlightErr('dw');return;}
+        if(_sh==='f'&&!gv('dfree')){toast('器具寸法（特殊形状の詳細）を入力してください','err');highlightErr('dfree');return;}
+      }
     }
     if(ledSt!=='led'){
       if(!getLamp()){toast((ledSt==='lled'?'ランプ型番':'ランプ種別')+'を入力してください','err');highlightErr(ledSt==='lled'?'lamp-free':'lamp-type');return;}
       if(!gv('watt')&&!wattUnknownSt){toast('消費電力を入力してください','err');highlightErr('watt');return;}
+    }
+    // LED器具のランプ消費電力必須チェック
+    if(ledSt==='led'){
+      if(ledTypeSt==='ittai'||ledTypeSt===''){
+        if(!gv('led-watt')&&!ledWattUnknownSt){toast('ランプ消費電力を入力してください','err');highlightErr('led-watt');return;}
+      }
+      if(ledTypeSt==='lamp'){
+        if(!gv('led-lwatt')&&!ledLwattUnknownSt){toast('ランプ消費電力を入力してください','err');highlightErr('led-lwatt');return;}
+      }
     }
   }
   // 色温度未選択チェック（eonly・guide以外）
@@ -1927,12 +1986,12 @@ function regEntry(){
     high:highSt,highH:gv('high-h-v'),highC:gv('high-cmt-v'),
     led:ledSt==='led',lled:ledSt==='lled',fixMemo:gv('fix-memo'),
     ledModel:gv('led-model'),ledType:ledTypeSt,
-    ledWatt:gv('led-watt'),ledCt:gv('led-ct'),ledYear:gv('led-year'),
-    ledLwatt:gv('led-lwatt'),ledLct:gv('led-lct'),
+    ledWatt:ledWattUnknownSt?'未確認':gv('led-watt'),ledCt:gv('led-ct'),ledYear:gv('led-year'),
+    ledLwatt:ledLwattUnknownSt?'未確認':gv('led-lwatt'),ledLct:gv('led-lct'),
     bypass:bypassSt,
     parkingNo:gv('parking-no'),
     emgMount:isEonly?emgMountSt:'',emgWater:isEonly?emgWaterSt:'',
-    guide:fixTypeSt==='guide'?{led:guideLedSt,grade:guideGradeSt,kind:guideKindSt,panelColor:guidePanelColorSt,dir:guideDirSt,dirB:guideDirBSt,year:gv('guide-year'),installPos:guideInstallPosSt,hangH:gv('guide-hang-h'),sizeShape:guideSizeSt,sizeRectH:gv('gsz-rect-h'),sizeRectW:gv('gsz-rect-w'),sizeCircPhi:gv('gsz-circ-phi')}:null,
+    guide:fixTypeSt==='guide'?{led:guideLedSt,grade:guideGradeSt,kind:guideKindSt,panelColor:guidePanelColorSt,dir:guideDirSt,dirOther:guideDirSt==='other'?gv('guide-dir-other'):'',dirB:guideDirBSt,year:gv('guide-year'),installPos:guideInstallPosSt,installType:guideInstallTypeSt,hangH:gv('guide-hang-h'),sizeShape:guideSizeSt,sizeRectH:gv('gsz-rect-h'),sizeRectW:gv('gsz-rect-w'),sizeCircPhi:gv('gsz-circ-phi')}:null,
     altLamp:altLampEnabled?{lamp:altLampLamp,watt:altLampWatt}:null,
     sensor:fnameSensorSt==='other'?(document.getElementById('fname-sensor-other')?document.getElementById('fname-sensor-other').value:'その他'):({'motion':'人感センサー付','light':'明暗センサー付'}[fnameSensorSt]||''),
     circuit:{'building':'建物回路','ac':'AC回路'}[fnameCircuitSt]||'',
@@ -2005,7 +2064,9 @@ function editEntry(eid){
 function clearForm(){
   ['watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo','fname-sub-other','fname-sensor-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   fnameSubSt='';fnameSensorSt='';fnameCircuitSt='';fnameFootSt='';poleInstallSt='';
-  wattUnknownSt=false;const _wub=document.getElementById('watt-unknown-btn');if(_wub)_wub.classList.remove('act-in');const _wi=document.getElementById('watt');if(_wi)_wi.disabled=false;
+  wattUnknownSt=false;const _wub=document.getElementById('watt-unknown-chk');if(_wub)_wub.checked=false;const _wi=document.getElementById('watt');if(_wi)_wi.disabled=false;
+  ledWattUnknownSt=false;const _lwub=document.getElementById('led-watt-unknown-chk');if(_lwub)_lwub.checked=false;const _lwi=document.getElementById('led-watt');if(_lwi)_lwi.disabled=false;
+  ledLwattUnknownSt=false;const _llwub=document.getElementById('led-lwatt-unknown-chk');if(_llwub)_llwub.checked=false;const _llwi=document.getElementById('led-lwatt');if(_llwi)_llwi.disabled=false;
   document.querySelectorAll('#fname-sub-wrap .tbtn,#fname-sensor-btns .tbtn,#fname-circuit-btns .tbtn,#fname-foot-btns .tbtn,#pole-install-btns .tbtn').forEach(b=>b.classList.remove('act-in'));
   const _fsoW=document.getElementById('fname-sub-other-wrap');if(_fsoW)_fsoW.style.display='none';
   const _fsnW=document.getElementById('fname-sensor-other-wrap');if(_fsnW)_fsnW.style.display='none';
@@ -2036,8 +2097,11 @@ function clearForm(){
   const ledIttaiEl=document.getElementById('led-ittai-fields');if(ledIttaiEl)ledIttaiEl.style.display='block';
   ['led-model','led-watt','led-ct','led-year','led-lwatt','led-lct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   // 誘導灯リセット
-  guideLedSt='';guideGradeSt='';guideKindSt='';guidePanelColorSt='';guideDirSt='';guideDirBSt='';guideInstallPosSt='';guideSizeSt='';
-  ['guide-led-btn','gg-c','gg-bl','gg-bh','gg-a','gt-single','gt-double','gp-green','gp-white','gd-left','gd-right','gd-both','gdb-left','gdb-right','gdb-both','gip-ceil','gip-wall','gip-hang','gsz-rect-btn','gsz-circ-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  guideLedSt='';guideGradeSt='';guideKindSt='';guidePanelColorSt='';guideDirSt='';guideDirBSt='';guideInstallPosSt='';guideInstallTypeSt='';guideSizeSt='';
+  ['guide-led-btn','gg-c','gg-bl','gg-bh','gg-a','gt-single','gt-double','gp-green','gp-white','gd-left','gd-right','gd-both','gd-other','gdb-left','gdb-right','gdb-both','gip-ceil','gip-wall','gip-hang','git-direct','git-embed','gsz-rect-btn','gsz-circ-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act-in');});
+  const _gitW=document.getElementById('guide-install-type-wrap');if(_gitW)_gitW.style.display='none';
+  const _gdOW=document.getElementById('guide-dir-other-wrap');if(_gdOW)_gdOW.style.display='none';
+  const _gdO=document.getElementById('guide-dir-other');if(_gdO)_gdO.value='';
   const gnl=document.getElementById('guide-non-led');if(gnl)gnl.style.display='block';
   const gld=document.getElementById('guide-led-detail');if(gld)gld.style.display='none';
   const gdbf=document.getElementById('guide-dir-b-field');if(gdbf)gdbf.style.display='none';
@@ -2178,9 +2242,9 @@ function applyFix(fix){
   if(!isEonly){
     setLampFromName(fix.lamp||'');
     const lcEl=document.getElementById('lamp-count');if(lcEl)lcEl.value=fix.lampCount||'1';
-    wattUnknownSt=(fix.watt==='未確認');const _wubA=document.getElementById('watt-unknown-btn');if(_wubA)_wubA.classList.toggle('act-in',wattUnknownSt);const _wiA=document.getElementById('watt');if(_wiA){_wiA.disabled=wattUnknownSt;_wiA.value=wattUnknownSt?'':fix.watt||'';};
+    wattUnknownSt=(fix.watt==='未確認');const _wubA=document.getElementById('watt-unknown-chk');if(_wubA)_wubA.checked=wattUnknownSt;const _wiA=document.getElementById('watt');if(_wiA){_wiA.disabled=wattUnknownSt;_wiA.value=wattUnknownSt?'':fix.watt||'';};
     const dv=fix.dv||{};
-    sv('shape',dv.shape);onShape();if(dv.poleType)setPoleType(dv.poleType);sv('dpole-d',dv.poleD||'');sv('dpole-h',dv.poleH||'');sv('dpole-pd',dv.polePd||'');if(dv.poleInstall)setPoleInstall(dv.poleInstall);
+    sv('shape',dv.shape);onShape();poleTypeSt='';if(dv.poleType)setPoleType(dv.poleType);sv('dpole-d',dv.poleD||'');sv('dpole-h',dv.poleH||'');sv('dpole-pd',dv.polePd||'');poleInstallSt='';if(dv.poleInstall)setPoleInstall(dv.poleInstall);
     sv('dphi-out',dv.phiOut);sv('dphi-in',dv.phiIn);
     sv('dside',dv.side);sv('dside-max',dv.sideMax);
     sv('dh',dv.dh);sv('dw',dv.dw);sv('drect-max-h',dv.rectMaxH);sv('drect-max-w',dv.rectMaxW);
@@ -2191,8 +2255,16 @@ function applyFix(fix){
   setHigh(fix.high||'');sv('high-h-v',fix.highH||'');sv('high-cmt-v',fix.highC);
   if(fix.led)setLedSt('led');else if(fix.lled)setLedSt('lled');else setLedSt('');
   if(fix.ledType)setLedType(fix.ledType);
-  sv('led-model',fix.ledModel);sv('led-watt',fix.ledWatt);sv('led-ct',fix.ledCt);
-  sv('led-year',fix.ledYear);sv('led-lwatt',fix.ledLwatt);sv('led-lct',fix.ledLct);
+  sv('led-model',fix.ledModel);sv('led-ct',fix.ledCt);
+  sv('led-year',fix.ledYear);sv('led-lct',fix.ledLct);
+  // led-watt 未確認復元
+  ledWattUnknownSt=(fix.ledWatt==='未確認');
+  const _lwubA=document.getElementById('led-watt-unknown-chk');if(_lwubA)_lwubA.checked=ledWattUnknownSt;
+  const _lwiA=document.getElementById('led-watt');if(_lwiA){_lwiA.disabled=ledWattUnknownSt;_lwiA.value=ledWattUnknownSt?'':fix.ledWatt||'';}
+  // led-lwatt 未確認復元
+  ledLwattUnknownSt=(fix.ledLwatt==='未確認');
+  const _llwubA=document.getElementById('led-lwatt-unknown-chk');if(_llwubA)_llwubA.checked=ledLwattUnknownSt;
+  const _llwiA=document.getElementById('led-lwatt');if(_llwiA){_llwiA.disabled=ledLwattUnknownSt;_llwiA.value=ledLwattUnknownSt?'':fix.ledLwatt||'';}
   if(fix.bypass)setBypass(fix.bypass);
   // alt lamp復元
   altLampEnabled=!!(fix.altLamp);
@@ -2204,16 +2276,19 @@ function applyFix(fix){
   const _altWt=document.getElementById('alt-lamp-watt');if(_altWt)_altWt.value=altLampWatt;
   sv('parking-no',fix.parkingNo);
   sv('fix-memo',fix.fixMemo);
-  // Restore sensor/circuit/footType button states
+  // Restore sensor/circuit/footType button states (reset first to avoid toggle bug)
+  fnameSensorSt='';
   if(fix.sensor){
     if(fix.sensor==='人感センサー付')setFnameSensor('motion');
     else if(fix.sensor==='明暗センサー付')setFnameSensor('light');
     else{setFnameSensor('other');const _snO=document.getElementById('fname-sensor-other');if(_snO)_snO.value=fix.sensor;}
   }
+  fnameCircuitSt='';
   if(fix.circuit){
     if(fix.circuit==='建物回路')setFnameCircuit('building');
     else if(fix.circuit==='AC回路')setFnameCircuit('ac');
   }
+  fnameFootSt='';
   if(fix.footType){
     if(fix.footType==='壁面埋込')setFnameFootType('wall');
     else if(fix.footType==='地面埋込')setFnameFootType('ground');
@@ -2229,12 +2304,14 @@ function applyFix(fix){
       const gszSec=document.getElementById('guide-size-section');if(gszSec)gszSec.style.display='none';
       sv('guide-year',g.year);
     } else {
-      if(g.grade)setGuideGrade(g.grade);
-      if(g.kind)setGuideKind(g.kind);
-      if(g.panelColor)setGuidePanelColor(g.panelColor);
-      if(g.dir)setGuideDir(g.dir);
+      guideGradeSt='';if(g.grade)setGuideGrade(g.grade);
+      guideKindSt='';if(g.kind)setGuideKind(g.kind);
+      guidePanelColorSt='';if(g.panelColor)setGuidePanelColor(g.panelColor);
+      guideDirSt='';guideDirBSt='';if(g.dir)setGuideDir(g.dir);
+      if(g.dir==='other'&&g.dirOther){const _doi=document.getElementById('guide-dir-other');if(_doi)_doi.value=g.dirOther;}
       if(g.dirB)setGuideDirB(g.dirB);
-      if(g.installPos)setGuideInstallPos(g.installPos);
+      guideInstallPosSt='';guideInstallTypeSt='';if(g.installPos)setGuideInstallPos(g.installPos);
+      if(g.installType)setGuideInstallType(g.installType);
       sv('guide-hang-h',g.hangH);
       // 吊下げの場合のみ形状選択を復元（天井・壁面はsetGuideInstallPosで縦横を自動設定）
       if(g.sizeShape&&g.installPos==='hang')setGuideSizeShape(g.sizeShape);
@@ -2635,9 +2712,9 @@ function initTimeSelects(){
     return html;
   }
   ['t1s'].forEach(id=>{const sel=document.getElementById(id);if(sel)sel.innerHTML=makeOpts(16,0);});
-  ['t2s'].forEach(id=>{const sel=document.getElementById(id);if(sel){sel.innerHTML=makeOpts(16,0);sel.value='16:00';}});
+  ['t2s'].forEach(id=>{const sel=document.getElementById(id);if(sel){sel.innerHTML=makeOpts(16,0);}});
   ['t1e'].forEach(id=>{const sel=document.getElementById(id);if(sel)sel.innerHTML=makeOpts(6,0);});
-  ['t2e'].forEach(id=>{const sel=document.getElementById(id);if(sel){sel.innerHTML=makeOpts(0,0);sel.value='00:00';}});
+  ['t2e'].forEach(id=>{const sel=document.getElementById(id);if(sel){sel.innerHTML=makeOpts(0,0);}});
 }
 initTimeSelects();
 
