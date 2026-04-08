@@ -2841,6 +2841,7 @@ async function doEmailSend(){
     if(f.dim){let _dim=f.dim.replace(/(\d+)\s*[φΦ]\s*/g,'Φ$1');_dim=_dim.replace(/(.+?)(\d+)mm×(.+?)(\d+)mm/,(m,p1,n1,p2,n2)=>{const a=Number(n1),b=Number(n2);return a<=b?m:p2+n2+'mm×'+p1+n1+'mm';});txt+=`  寸法：${_dim}\n`;}
     if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}${f.waterCap?' (防水キャップあり)':''}\n`;
     if(!f.led&&f.watt)txt+=`  消費電力：${f.watt==='未確認'?'未確認':f.watt+'W'}\n`;
+    if(f.altLamps&&f.altLamps.length){f.altLamps.forEach((a,i)=>{txt+=`  追加ランプ${i+1}：${a.lamp||'(種別未入力)'}${a.watt?' '+a.watt+'W':''}\n`;});}
     if(f.rain==='out'||f.rain==='unk'){
       const rr={out:'雨線外',unk:'未確認','':''}[f.rain]||'';
       txt+=`  雨線：${rr}${f.rainC?'（'+f.rainC+'）':''}\n`;
@@ -2882,6 +2883,11 @@ async function doEmailSend(){
       txt+='\n';
     });
   });
+  // 全器具総台数
+  let grandTotal=0;
+  entries.forEach(ent=>{ent.floors.forEach(fl=>{grandTotal+=calcTot(fl.rows);if(fl.altGroups)fl.altGroups.forEach(g=>{grandTotal+=calcTot(g.rows);});});});
+  txt+=`\n━━━━━━━━━━\n`;
+  txt+=`📊 全器具総台数：${grandTotal}台\n`;
   txt+=`\n以上`;
 
   const btn=document.getElementById('send-btn');
