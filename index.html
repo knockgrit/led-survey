@@ -688,13 +688,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="divider"></div>
     <div style="font-size:13px;font-weight:700;color:#4a5568;margin-bottom:8px">📍 台数入力</div>
     <div id="alt-lamp-toggle-area" style="display:none;margin-bottom:10px">
-      <button class="add-mode-btn" id="alt-lamp-btn" onclick="toggleAltLamp()" style="font-size:12px;color:#4299e1;font-weight:700">＋ 同種器具に別ランプ使用</button>
-      <div id="alt-lamp-fields" style="display:none;margin-top:8px;padding:10px;background:#f0f9ff;border-radius:8px;border:1.5px solid #bee3f8">
-        <div class="r2">
-          <div class="field"><label>追加ランプ種別</label><input type="text" id="alt-lamp-name" placeholder="例：FPL13" oninput="altLampLamp=this.value;renderFF()"></div>
-          <div class="field"><label>追加ランプ消費電力</label><div class="uw"><input type="number" id="alt-lamp-watt" placeholder="13" oninput="altLampWatt=this.value;renderFF()"><span class="unit">W</span></div></div>
-        </div>
-      </div>
+      <button class="add-mode-btn" id="alt-lamp-btn" onclick="addAltLamp()" style="font-size:12px;color:#4299e1;font-weight:700">＋ 同種器具に別ランプ使用</button>
+      <div id="alt-lamp-list"></div>
     </div>
   </div>
   <div id="f-floors"></div>
@@ -954,7 +949,7 @@ function toggleLedLwattUnknown(){
 }
 let guideLedSt='',guideGradeSt='',guideKindSt='',guidePanelColorSt='',guideDirSt='',guideDirBSt='',guideInstallPosSt='',guideInstallTypeSt='',guideSizeSt='';
 let senyuSt=false,ledSt='',ledTypeSt='',bypassSt='';
-let altLampEnabled=false,altLampLamp='',altLampWatt='';
+let altLamps=[],nextAltId=1;
 let fnameSubSt='',fnameSensorSt='',fnameCircuitSt='',fnameFootSt='',poleInstallSt='';
 let waterCapSt=false;
 let recentSections=[];
@@ -1788,7 +1783,8 @@ function mrHtml(row,fid,eid){
 }
 
 // フロア行グループレンダリング（showCt=falseのとき色温度非表示）
-function renderFloorRows(rows,fid,eid,showCt=true,isAlt=false){
+function renderFloorRows(rows,fid,eid,showCt=true,altId=0){
+  const isAlt=altId>0;
   // 同一modeの連続行をグループ化
   const groups=[];
   rows.forEach(row=>{
@@ -1801,25 +1797,25 @@ function renderFloorRows(rows,fid,eid,showCt=true,isAlt=false){
   return groups.map(group=>{
     const firstRow=group.rows[0];
     const mode=group.mode;
-    const mcGrp=eid!=null?`eMCGroup(${eid},${fid},${firstRow.id},this.value)`:isAlt?`fMCGroupAlt(${fid},${firstRow.id},this.value)`:`fMCGroup(${fid},${firstRow.id},this.value)`;
-    const rmGrp=eid!=null?`eRModeGroup(${eid},${fid},${firstRow.id})`:isAlt?`fRModeGroupAlt(${fid},${firstRow.id})`:`fRModeGroup(${fid},${firstRow.id})`;
-    const addClr=eid!=null?`eAddColorRow(${eid},${fid},${firstRow.id})`:isAlt?`fAddColorRowAlt(${fid},${firstRow.id})`:`fAddColorRow(${fid},${firstRow.id})`;
+    const mcGrp=eid!=null?`eMCGroup(${eid},${fid},${firstRow.id},this.value)`:isAlt?`fMCGroupAlt(${fid},${altId},${firstRow.id},this.value)`:`fMCGroup(${fid},${firstRow.id},this.value)`;
+    const rmGrp=eid!=null?`eRModeGroup(${eid},${fid},${firstRow.id})`:isAlt?`fRModeGroupAlt(${fid},${altId},${firstRow.id})`:`fRModeGroup(${fid},${firstRow.id})`;
+    const addClr=eid!=null?`eAddColorRow(${eid},${fid},${firstRow.id})`:isAlt?`fAddColorRowAlt(${fid},${altId},${firstRow.id})`:`fAddColorRow(${fid},${firstRow.id})`;
     let html=`<div class="mode-row" style="margin-bottom:2px">
       <select onchange="${mcGrp}" style="flex:1;width:100%">${mOpts(mode)}</select>
       <button class="btn btn-xs btn-red" onclick="${rmGrp}">×</button>
     </div>`;
     group.rows.forEach(row=>{
       const cntId=`cnt-${row.id}`;
-      const cc=eid!=null?`eCC(${eid},${fid},${row.id},this.value)`:isAlt?`fCCAlt(${fid},${row.id},this.value)`:`fCC(${fid},${row.id},this.value)`;
-      const ctChg=eid!=null?`eRowCtChg(${eid},${fid},${row.id},this.value)`:isAlt?`fRowCtChgAlt(${fid},${row.id},this.value)`:`fRowCtChg(${fid},${row.id},this.value)`;
-      const rm=eid!=null?`eRRow(${eid},${fid},${row.id})`:isAlt?`fRRowAlt(${fid},${row.id})`:`fRRow(${fid},${row.id})`;
+      const cc=eid!=null?`eCC(${eid},${fid},${row.id},this.value)`:isAlt?`fCCAlt(${fid},${altId},${row.id},this.value)`:`fCC(${fid},${row.id},this.value)`;
+      const ctChg=eid!=null?`eRowCtChg(${eid},${fid},${row.id},this.value)`:isAlt?`fRowCtChgAlt(${fid},${altId},${row.id},this.value)`:`fRowCtChg(${fid},${row.id},this.value)`;
+      const rm=eid!=null?`eRRow(${eid},${fid},${row.id})`:isAlt?`fRRowAlt(${fid},${altId},${row.id})`:`fRRow(${fid},${row.id})`;
       const plusFn=eid!=null
         ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`:isAlt
-        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCCAlt(${fid},${row.id},String(v));})()`
+        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCCAlt(${fid},${altId},${row.id},String(v));})()`
         :`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
       const minusFn=eid!=null
         ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${fid},${row.id},String(v));})()`:isAlt
-        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCCAlt(${fid},${row.id},String(v));})()`
+        ?`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCCAlt(${fid},${altId},${row.id},String(v));})()`
         :`(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${fid},${row.id},String(v));})()`;
       if(showCt){
         const ctOpts=`<option value="">色温度</option><option${row.ct==='昼白色(N)'?' selected':''}>昼白色(N)</option><option${row.ct==='電球色(L)'?' selected':''}>電球色(L)</option><option${row.ct==='白色(W)'?' selected':''}>白色(W)</option><option${row.ct==='昼光色(D)'?' selected':''}>昼光色(D)</option><option${row.ct==='温白色(WW)'?' selected':''}>温白色(WW)</option><option${row.ct==='不明'?' selected':''}>不明</option>`;
@@ -1883,7 +1879,7 @@ function addFF(){
       const baseRows=senyuSt?[{id:nextMid++,mode:'専有回路',count:'',timer:'',ct:''}]:
         lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):
         [{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
-      const _nfl={id:nextFid++,floor:fl,rows:baseRows,memo:''};if(altLampEnabled)_nfl.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];fFloors.push(_nfl);
+      fFloors.push({id:nextFid++,floor:fl,rows:baseRows,memo:'',altGroups:[]});
     });
   } else {
     const lastF=fFloors.length?fFloors[fFloors.length-1]:null;
@@ -1897,15 +1893,14 @@ function addFF(){
 }
 function addOneFF(){
   if(!gv('fl-from')){showFloorRequired();return;}
-  const _nf={id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''};if(altLampEnabled)_nf.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
-  fFloors.push(_nf);
+  fFloors.push({id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:'',altGroups:[]});
   renderFF();
   setTimeout(()=>{const l=document.querySelector('#f-floors .fl-block:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 function addOneFFAfter(fid){
   if(!gv('fl-from')){showFloorRequired();return;}
   const idx=fFloors.findIndex(f=>f.id===fid);
-  const newFloor={id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:''};if(altLampEnabled)newFloor.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
+  const newFloor={id:nextFid++,floor:'',rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}],memo:'',altGroups:[]};
   if(idx>=0)fFloors.splice(idx+1,0,newFloor);else fFloors.push(newFloor);
   renderFF();
   setTimeout(()=>{const blocks=document.querySelectorAll('#f-floors .fl-block');const ni=idx>=0?idx+1:fFloors.length-1;if(blocks[ni])blocks[ni].scrollIntoView({behavior:'smooth',block:'nearest'});},80);
@@ -1918,30 +1913,67 @@ function applyAllSame(checked){
     return;
   }
   const baseRows=fFloors[0].rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
-  const baseAlt=altLampEnabled&&fFloors[0].altRows?fFloors[0].altRows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):null;
-  fFloors.forEach((f,i)=>{if(i>0){f.rows=baseRows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));if(baseAlt)f.altRows=baseAlt.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));}});
+  const baseAltGs=fFloors[0].altGroups?fFloors[0].altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[];
+  fFloors.forEach((f,i)=>{if(i>0){f.rows=baseRows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));f.altGroups=baseAltGs.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))}));}});
   renderFF();
 }
 function fRFloor(fid){fFloors=fFloors.filter(f=>f.id!==fid);renderFF();}
 function fFloorChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.floor=v;}
 function fMemoChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.memo=v;}
 function fAddRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;if(!senyuSt&&f.rows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const newMode=senyuSt?'専有回路':'';f.rows.push({id:nextMid++,mode:newMode,count:'',timer:defTimer(),ct:''});renderFF();}
-// ── 別ランプ (Alt) 用関数群 ──
-function toggleAltLamp(){
-  altLampEnabled=!altLampEnabled;
-  const btn=document.getElementById('alt-lamp-btn');if(btn)btn.textContent=altLampEnabled?'－ 別ランプ使用をキャンセル':'＋ 同種器具に別ランプ使用';
-  const fld=document.getElementById('alt-lamp-fields');if(fld)fld.style.display=altLampEnabled?'block':'none';
-  if(altLampEnabled){fFloors.forEach(f=>{if(!f.altRows||!f.altRows.length)f.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];});}
-  else{altLampLamp='';altLampWatt='';const an=document.getElementById('alt-lamp-name');if(an)an.value='';const aw=document.getElementById('alt-lamp-watt');if(aw)aw.value='';}
+// ── 別ランプ (Alt) 用関数群（複数対応） ──
+function renderAltLampList(){
+  const el=document.getElementById('alt-lamp-list');if(!el)return;
+  if(!altLamps.length){el.innerHTML='';return;}
+  const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];
+  el.innerHTML=altLamps.map((a,i)=>`<div style="margin-top:8px;padding:10px;background:${colors[i%colors.length]};border-radius:8px;border:1.5px solid #cbd5e0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:12px;font-weight:700;color:#2d3748">追加ランプ${i+1}</span>
+      <button onclick="removeAltLamp(${a.id})" style="background:#fed7d7;color:#c53030;border:none;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">削除</button>
+    </div>
+    <div class="r2">
+      <div class="field"><label style="font-size:12px">ランプ種別</label><input type="text" value="${a.lamp||''}" placeholder="例：FPL13" oninput="altLampChg(${a.id},'lamp',this.value)" style="width:100%;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px"></div>
+      <div class="field"><label style="font-size:12px">消費電力</label><div class="uw"><input type="number" value="${a.watt||''}" placeholder="13" oninput="altLampChg(${a.id},'watt',this.value)" style="width:100px;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px"><span class="unit">W</span></div></div>
+    </div>
+  </div>`).join('');
+}
+function addAltLamp(){
+  altLamps.push({id:nextAltId++,lamp:'',watt:''});
+  renderAltLampList();renderFF();saveLS();
+}
+function removeAltLamp(aid){
+  const a=altLamps.find(x=>x.id===aid);
+  const hasData=fFloors.some(f=>f.altGroups&&f.altGroups.some(g=>g.altId===aid&&g.rows.some(r=>r.count&&Number(r.count)>0)));
+  if(hasData){if(!confirm('この追加ランプの台数データも全て削除されます。よろしいですか？'))return;}
+  altLamps=altLamps.filter(x=>x.id!==aid);
+  fFloors.forEach(f=>{if(f.altGroups)f.altGroups=f.altGroups.filter(g=>g.altId!==aid);});
+  renderAltLampList();renderFF();saveLS();
+}
+function altLampChg(aid,key,val){const a=altLamps.find(x=>x.id===aid);if(a)a[key]=val;renderFF();saveLS();}
+function getAltLabel(aid){const a=altLamps.find(x=>x.id===aid);return a?(a.lamp||'追加ランプ'+altLamps.indexOf(a)+''):'追加ランプ';}
+// フロアに追加ランプのカウント欄を追加
+function fToggleAltGroup(fid,aid){
+  const f=fFloors.find(f=>f.id===fid);if(!f)return;
+  if(!f.altGroups)f.altGroups=[];
+  const idx=f.altGroups.findIndex(g=>g.altId===aid);
+  if(idx>=0){
+    const g=f.altGroups[idx];
+    const hasData=g.rows.some(r=>r.count&&Number(r.count)>0);
+    if(hasData){if(!confirm('この追加ランプの台数データを削除しますか？'))return;}
+    f.altGroups.splice(idx,1);
+  } else {
+    f.altGroups.push({altId:aid,rows:[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}]});
+  }
   renderFF();
 }
-function fAddAltRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;if(!f.altRows)f.altRows=[];if(!senyuSt&&f.altRows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const nm=senyuSt?'専有回路':'';f.altRows.push({id:nextMid++,mode:nm,count:'',timer:defTimer(),ct:''});renderFF();}
-function fAddColorRowAlt(fid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'';const lastIdx=f.altRows.reduce((li,r,i)=>r.mode===mode?i:li,-1);const newRow={id:nextMid++,mode,count:'',timer:defTimer(),ct:''};if(lastIdx>=0)f.altRows.splice(lastIdx+1,0,newRow);else f.altRows.push(newRow);renderFF();}
-function fRModeGroupAlt(fid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'__none__';f.altRows=f.altRows.filter(r=>r.mode!==mode);if(!f.altRows.length)f.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];renderFF();}
-function fMCGroupAlt(fid,firstRowId,v){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altRows)return;const ref=f.altRows.find(r=>r.id===firstRowId);if(!ref)return;const oldMode=ref.mode;const t=autoTimer(v);f.altRows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});renderFF();}
-function fRRowAlt(fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=fFloors.find(f=>f.id===fid);if(f&&f.altRows)f.altRows=f.altRows.filter(r=>r.id!==mid);renderFF();}
-function fCCAlt(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.altRows?.find(r=>r.id===mid);if(r){r.count=v;const el=document.getElementById(`ftot-${fid}`);if(el)el.textContent='合計：'+(calcTot(f.rows)+(f.altRows?calcTot(f.altRows):0))+'台';}}
-function fRowCtChgAlt(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.altRows?.find(r=>r.id===mid);if(r)r.ct=v;}
+function fAddAltRow(fid,aid){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;if(!senyuSt&&g.rows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const nm=senyuSt?'専有回路':'';g.rows.push({id:nextMid++,mode:nm,count:'',timer:defTimer(),ct:''});renderFF();}
+function fAddColorRowAlt(fid,aid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;const ref=g.rows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'';const lastIdx=g.rows.reduce((li,r,i)=>r.mode===mode?i:li,-1);const newRow={id:nextMid++,mode,count:'',timer:defTimer(),ct:''};if(lastIdx>=0)g.rows.splice(lastIdx+1,0,newRow);else g.rows.push(newRow);renderFF();}
+function fRModeGroupAlt(fid,aid,firstRowId){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;const ref=g.rows.find(r=>r.id===firstRowId);const mode=ref?ref.mode:'__none__';g.rows=g.rows.filter(r=>r.mode!==mode);if(!g.rows.length)g.rows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];renderFF();}
+function fMCGroupAlt(fid,aid,firstRowId,v){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;const ref=g.rows.find(r=>r.id===firstRowId);if(!ref)return;const oldMode=ref.mode;const t=autoTimer(v);g.rows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});renderFF();}
+function fRRowAlt(fid,aid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;g.rows=g.rows.filter(r=>r.id!==mid);renderFF();}
+function fCCAlt(fid,aid,mid,v){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;const r=g.rows.find(r=>r.id===mid);if(r){r.count=v;updateFloorTotal(fid);}}
+function fRowCtChgAlt(fid,aid,mid,v){const f=fFloors.find(f=>f.id===fid);if(!f||!f.altGroups)return;const g=f.altGroups.find(g=>g.altId===aid);if(!g)return;const r=g.rows.find(r=>r.id===mid);if(r)r.ct=v;}
+function updateFloorTotal(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;let tot=calcTot(f.rows);if(f.altGroups)f.altGroups.forEach(g=>{tot+=calcTot(g.rows);});const el=document.getElementById('ftot-'+fid);if(el)el.textContent='合計：'+tot+'台';}
 // 色温度追加：firstRowIdで同グループのmodeを取得して追加
 function fAddColorRow(fid,firstRowId){
   const f=fFloors.find(f=>f.id===fid);if(!f)return;
@@ -2018,7 +2050,7 @@ function fCopyFloor(fid){
   const f=fFloors.find(f=>f.id===fid);if(!f)return;
   const newRows=f.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
   const idx=fFloors.findIndex(f=>f.id===fid);
-  const _cpFl={id:nextFid++,floor:'',rows:newRows,memo:f.memo};if(altLampEnabled&&f.altRows)_cpFl.altRows=f.altRows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  const _cpFl={id:nextFid++,floor:'',rows:newRows,memo:f.memo,altGroups:f.altGroups?f.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[]};
   fFloors.splice(idx+1,0,_cpFl);
   renderFF();
   setTimeout(()=>{const blocks=document.querySelectorAll('#f-floors .fl-block');if(blocks[idx+1])blocks[idx+1].scrollIntoView({behavior:'smooth',block:'nearest'});},80);
@@ -2028,10 +2060,11 @@ function eCopyFloor(eid,fid){
   const f=e.floors.find(f=>f.id===fid);if(!f)return;
   const newRows=f.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
   const idx=e.floors.findIndex(f=>f.id===fid);
-  e.floors.splice(idx+1,0,{id:nextFid++,floor:'',rows:newRows,memo:f.memo});
+  const newAltGs=f.altGroups?f.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[];
+  e.floors.splice(idx+1,0,{id:nextFid++,floor:'',rows:newRows,memo:f.memo,altGroups:newAltGs});
   renderEF(eid);
 }
-function fCC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r){r.count=v;const el=document.getElementById(`ftot-${fid}`);if(el)el.textContent='合計：'+(calcTot(f.rows)+(f.altRows?calcTot(f.altRows):0))+'台';}}
+function fCC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r){r.count=v;updateFloorTotal(fid);}}
 function fTC(fid,mid,v){const f=fFloors.find(f=>f.id===fid),r=f?.rows.find(r=>r.id===mid);if(r)r.timer=v;}
 
 function updateRegBtn(){
@@ -2088,11 +2121,16 @@ function renderFF(){
         </select>
         <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
       </div>
-      ${altLampEnabled?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】 ${getLamp()||'(種別未入力)'}</div>`:''}
+      ${altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】 ${getLamp()||'(種別未入力)'}</div>`:''}
       ${renderFloorRows(f.rows,f.id,null,!isGuide)}
       <button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button>
-      ${(()=>{if(!altLampEnabled)return '';if(!f.altRows||!f.altRows.length)f.altRows=[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];return`<div style="font-size:11px;font-weight:700;color:#2b6cb0;margin:6px 0 4px;padding:2px 6px;background:#ebf8ff;border-radius:4px">【追加ランプ】 ${altLampLamp||'(種別未入力)'}</div>${renderFloorRows(f.altRows,f.id,null,true,true)}<button class="add-mode-btn" onclick="fAddAltRow(${f.id})">＋ 点灯方式を追加</button>`;})()}
-      <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)+(altLampEnabled&&f.altRows?calcTot(f.altRows):0)}台</div>
+      ${(()=>{if(!altLamps.length)return '';if(!f.altGroups)f.altGroups=[];const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return altLamps.map((a,ai)=>{const g=f.altGroups.find(g=>g.altId===a.id);const isActive=!!g;return`<div style="margin-top:6px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${isActive?'4':'0'}px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#2b6cb0;cursor:pointer;flex:1"><input type="checkbox" ${isActive?'checked':''} onchange="fToggleAltGroup(${f.id},${a.id})" style="width:14px;height:14px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</label>
+        </div>
+        ${isActive?renderFloorRows(g.rows,f.id,null,true,a.id)+`<button class="add-mode-btn" onclick="fAddAltRow(${f.id},${a.id})">＋ 点灯方式を追加</button>`:''}
+      </div>`;}).join('')})()}
+      <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)+(f.altGroups?f.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0)}台</div>
       <input type="text" value="${f.memo}" placeholder="備考・特記（例：1台器具破損あり）"
         style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
         oninput="fMemoChg(${f.id},this.value)">
@@ -2174,7 +2212,7 @@ function regEntry(){
     parkingNo:gv('parking-no'),
     emgMount:isEonly?emgMountSt:'',emgWater:isEonly?emgWaterSt:'',
     guide:fixTypeSt==='guide'?{led:guideLedSt,grade:guideGradeSt,kind:guideKindSt,panelColor:guidePanelColorSt,dir:guideDirSt,dirOther:guideDirSt==='other'?gv('guide-dir-other'):'',dirB:guideDirBSt,year:gv('guide-year'),installPos:guideInstallPosSt,installType:guideInstallTypeSt,hangH:gv('guide-hang-h'),sizeShape:guideSizeSt,sizeRectH:gv('gsz-rect-h'),sizeRectW:gv('gsz-rect-w'),sizeCircPhi:gv('gsz-circ-phi')}:null,
-    altLamp:altLampEnabled?{lamp:altLampLamp,watt:altLampWatt}:null,
+    altLamps:altLamps.length?altLamps.map(a=>({id:a.id,lamp:a.lamp,watt:a.watt})):null,
     sensor:fnameSensorSt==='other'?(document.getElementById('fname-sensor-other')?document.getElementById('fname-sensor-other').value:'その他'):({'motion':'人感センサー付','light':'明暗センサー付'}[fnameSensorSt]||''),
     circuit:{'building':'建物回路','ac':'AC回路'}[fnameCircuitSt]||'',
     footType:{'wall':'壁面埋込','ground':'地面埋込'}[fnameFootSt]||'',
@@ -2231,6 +2269,8 @@ function editEntry(eid){
   }
   applyFix(e.fix);
   fFloors=JSON.parse(JSON.stringify(e.floors));
+  // 旧altRows→altGroups変換
+  fFloors.forEach(f=>{if(f.altRows&&!f.altGroups&&altLamps.length){f.altGroups=[{altId:altLamps[0].id,rows:f.altRows}];delete f.altRows;}if(!f.altGroups)f.altGroups=[];});
   _editBackup=JSON.parse(JSON.stringify(e));
   editingId=eid;
   entries=entries.filter(en=>en.id!==eid);
@@ -2296,11 +2336,7 @@ function clearForm(){
   ['gsz-rect-fields','gsz-circ-fields'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   const gszSec=document.getElementById('guide-size-section');if(gszSec)gszSec.style.display='block';
   const gszShapeBtns=document.getElementById('gsz-shape-btns');if(gszShapeBtns)gszShapeBtns.style.display='';
-  altLampEnabled=false;altLampLamp='';altLampWatt='';
-  const _altBtnR=document.getElementById('alt-lamp-btn');if(_altBtnR)_altBtnR.textContent='＋ 同種器具に別ランプ使用';
-  const _altFldsR=document.getElementById('alt-lamp-fields');if(_altFldsR)_altFldsR.style.display='none';
-  const _altNmR=document.getElementById('alt-lamp-name');if(_altNmR)_altNmR.value='';
-  const _altWtR=document.getElementById('alt-lamp-watt');if(_altWtR)_altWtR.value='';
+  altLamps=[];renderAltLampList();
   fFloors=[];renderFF();
 }
 
@@ -2316,7 +2352,7 @@ function eFlChg(eid,fid,v){const f=findF(eid,fid);if(f)f.floor=v;}
 function eMemoChg(eid,fid,v){const f=findF(eid,fid);if(f)f.memo=v;}
 function eAddRow(eid,fid){const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>!r.mode)){toast('現在の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);updateECardWarns(eid);}
 function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderEF(eid);updateECardWarns(eid);}
-function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:''});}renderEF(eid);}
+function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:'',altGroups:[]});}renderEF(eid);}
 function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
 function delEntry(id){
   entries=entries.filter(e=>e.id!==id);
@@ -2379,11 +2415,11 @@ function renderEF(eid){
         </select>
         <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
       </div>
-      ${e.fix.altLamp?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
+      ${e.fix.altLamps&&e.fix.altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
       ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
       <button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button>
-      ${e.fix.altLamp?`<div style="font-size:11px;font-weight:700;color:#2b6cb0;margin:6px 0 4px;padding:2px 6px;background:#ebf8ff;border-radius:4px">【追加ランプ】 ${e.fix.altLamp.lamp||'(種別未入力)'}</div>${f.altRows&&f.altRows.length?renderFloorRows(f.altRows,f.id,eid,true,true):''}`:''}
-      <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)+(e.fix.altLamp&&f.altRows?calcTot(f.altRows):0)}台</div>
+      ${(()=>{const als=e.fix.altLamps||[];if(!als.length)return '';const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return als.map((a,ai)=>{const g=f.altGroups?f.altGroups.find(g=>g.altId===a.id):null;if(!g)return '';return`<div style="margin-top:4px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0"><div style="font-size:11px;font-weight:700;color:#2b6cb0;margin-bottom:4px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</div>${renderFloorRows(g.rows,f.id,eid,true)}</div>`;}).join('')})()}
+      <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)+(f.altGroups?f.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0)}台</div>
       <input type="text" value="${f.memo}" placeholder="備考・特記"
         style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
         oninput="eMemoChg(${eid},${f.id},this.value)">
@@ -2451,13 +2487,16 @@ function applyFix(fix){
   const _llwiA=document.getElementById('led-lwatt');if(_llwiA){_llwiA.disabled=ledLwattUnknownSt;_llwiA.value=ledLwattUnknownSt?'':fix.ledLwatt||'';}
   if(fix.bypass)setBypass(fix.bypass);
   // alt lamp復元
-  altLampEnabled=!!(fix.altLamp);
-  altLampLamp=fix.altLamp?.lamp||'';
-  altLampWatt=fix.altLamp?.watt||'';
-  const _altBtn=document.getElementById('alt-lamp-btn');if(_altBtn)_altBtn.textContent=altLampEnabled?'－ 別ランプ使用をキャンセル':'＋ 同種器具に別ランプ使用';
-  const _altFlds=document.getElementById('alt-lamp-fields');if(_altFlds)_altFlds.style.display=altLampEnabled?'block':'none';
-  const _altNm=document.getElementById('alt-lamp-name');if(_altNm)_altNm.value=altLampLamp;
-  const _altWt=document.getElementById('alt-lamp-watt');if(_altWt)_altWt.value=altLampWatt;
+  // 複数altLamps復元（旧データ互換: altLamp→altLamps変換）
+  if(fix.altLamps&&fix.altLamps.length){
+    altLamps=fix.altLamps.map(a=>({id:a.id,lamp:a.lamp||'',watt:a.watt||''}));
+    nextAltId=Math.max(...altLamps.map(a=>a.id))+1;
+  } else if(fix.altLamp){
+    altLamps=[{id:nextAltId++,lamp:fix.altLamp.lamp||'',watt:fix.altLamp.watt||''}];
+  } else {
+    altLamps=[];
+  }
+  renderAltLampList();
   sv('parking-no',fix.parkingNo);
   sv('fix-memo',fix.fixMemo);
   // Restore sensor/circuit/footType button states (reset first to avoid toggle bug)
@@ -2549,7 +2588,7 @@ function renderEntries(){
     if(f.led||(f.fixType==='guide'&&f.guide?.led)){tags.push('<span class="tag t-led">LED器具</span>');}
     if(f.lled){tags.push('<span class="tag t-led">旧/LEDランプ</span>');}
     const spec=[f.dim,f.lamp,f.waterCap?'防水キャップあり':'',f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
-    const altSpec=f.altLamp?`追加ランプ：${f.altLamp.lamp||''}${f.altLamp.watt?' '+f.altLamp.watt+'W':''}`:''
+    const altSpec=f.altLamps&&f.altLamps.length?f.altLamps.map((a,i)=>`追加${i+1}：${a.lamp||''}${a.watt?' '+a.watt+'W':''}`).join('　'):''
     const _missingWarns=[];
     if(e.fix.fixType!=='eonly'&&e.fix.fixType!=='guide'){
       const _hasNoCt=e.floors.some(fl=>fl.rows.some(r=>!r.ct));
@@ -2834,9 +2873,10 @@ async function doEmailSend(){
           _mg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});
         });
         const ms=Object.entries(_mg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');
-        const _altTotFl=ent.fix.altLamp&&fl.altRows?calcTot(fl.altRows):0;
+        const _altTotFl=fl.altGroups?fl.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0;
         txt+=`  📍${fl.floor}：合計${tot+_altTotFl}台`;
-        if(ent.fix.altLamp){if(ms)txt+=`\n    →${ent.fix.lamp||'メインランプ'}：${ms}`;if(fl.altRows&&fl.altRows.length){const _amg={};fl.altRows.filter(r=>r.mode).forEach(r=>{const lbl=convMode(r.mode,r.timer);if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →${ent.fix.altLamp.lamp||'追加ランプ'}：${ams}`;}}else{if(ms)txt+=`→${ms}`;}
+        const hasAlts=ent.fix.altLamps&&ent.fix.altLamps.length&&fl.altGroups&&fl.altGroups.length;
+        if(hasAlts){if(ms)txt+=`\n    →${ent.fix.lamp||'メインランプ'}：${ms}`;fl.altGroups.forEach(ag=>{const aInfo=ent.fix.altLamps.find(a=>a.id===ag.altId);const _amg={};ag.rows.filter(r=>r.mode).forEach(r=>{const lbl=convMode(r.mode,r.timer);if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →${aInfo?aInfo.lamp||'追加ランプ':'追加ランプ'}：${ams}`;});}else{if(ms)txt+=`→${ms}`;}
       }
       if(fl.memo)txt+=`　※${fl.memo}`;
       txt+='\n';
