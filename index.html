@@ -2721,9 +2721,27 @@ function toggleECard(eid){
   const arrow=document.getElementById(`ecard-arrow-${eid}`);
   if(!body)return;
   const open=body.style.display==='none'||body.style.display==='';
-  body.style.display=open?'block':'none';
-  if(arrow)arrow.textContent=open?'▼':'▶';
-  if(open){openCards.add(eid);renderEF(eid);}else{openCards.delete(eid);}
+  if(entryViewMode==='h'){
+    // 横スクロール時は同じ場所の全器具を一括開閉
+    const groups=buildSectionGroups();
+    for(const g of groups){
+      const ids=g.items.map(it=>it.e.id);
+      if(ids.includes(eid)){
+        ids.forEach(id=>{
+          const b=document.getElementById(`ecbody-${id}`);
+          const a=document.getElementById(`ecard-arrow-${id}`);
+          if(b){b.style.display=open?'block':'none';}
+          if(a)a.textContent=open?'▼':'▶';
+          if(open){openCards.add(id);renderEF(id);}else{openCards.delete(id);}
+        });
+        break;
+      }
+    }
+  } else {
+    body.style.display=open?'block':'none';
+    if(arrow)arrow.textContent=open?'▼':'▶';
+    if(open){openCards.add(eid);renderEF(eid);}else{openCards.delete(eid);}
+  }
 }
 
 // ── Excel出力 ──
