@@ -472,7 +472,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field" id="normal-lamp-field">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap">
         <label id="lamp-label" style="margin:0">ランプ種別<span class="req">*</span></label>
-        <label id="water-cap-wrap" style="display:none;gap:4px;cursor:pointer;font-size:13px;align-items:center"><input type="checkbox" id="water-cap-chk" onchange="toggleWaterCap()">防水キャップあり <span onclick="event.preventDefault();document.getElementById('watercap-modal').style.display='flex'" style="color:#3182ce;text-decoration:underline;font-size:12px;cursor:pointer">(?)</span></label>
+        <div id="water-cap-wrap" style="display:none;align-items:center;gap:4px">
+          <button class="tbtn" id="water-cap-btn" onclick="toggleWaterCap()" style="font-size:12px;padding:4px 10px">防水キャップあり</button>
+          <span onclick="document.getElementById('watercap-modal').style.display='flex'" style="color:#3182ce;text-decoration:underline;font-size:11px;cursor:pointer">(?)</span>
+        </div>
       </div>
       <div id="lamp-select-wrap">
         <select id="lamp-type" onchange="onLampType()" style="width:100%;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc;margin-bottom:4px"></select>
@@ -616,7 +619,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     </div>
 
     <div class="field">
-      <label>雨線</label>
+      <div style="display:flex;align-items:center;gap:6px"><label style="margin:0">雨線</label><span onclick="document.getElementById('rain-modal').style.display='flex'" style="color:#3182ce;text-decoration:underline;font-size:12px;cursor:pointer">雨線外とは？</span></div>
       <div class="tgroup">
         <button class="tbtn" id="rain-out" onclick="setRain(rainSt==='out'?'':'out')">雨線外</button>
       </div>
@@ -729,6 +732,39 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 <div class="toast" id="toast"></div>
 
 <!-- ヘルプモーダル -->
+<div id="rain-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:12px;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:14px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;padding:20px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">雨線外とは？</h3>
+      <button onclick="document.getElementById('rain-modal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#718096">&times;</button>
+    </div>
+    <svg viewBox="0 0 320 260" style="width:100%;margin-bottom:12px;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa">
+      <rect x="120" y="10" width="190" height="20" fill="#888" rx="2"/>
+      <rect x="120" y="30" width="10" height="180" fill="#888"/>
+      <rect x="280" y="10" width="10" height="200" fill="#888"/>
+      <rect x="140" y="60" width="16" height="24" fill="#555" rx="1"/>
+      <rect x="200" y="60" width="16" height="24" fill="#555" rx="1"/>
+      <rect x="250" y="60" width="16" height="24" fill="#555" rx="1"/>
+      <line x1="130" y1="30" x2="130" y2="210" stroke="#333" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <line x1="130" y1="30" x2="40" y2="210" stroke="#e53e3e" stroke-width="2"/>
+      <text x="70" y="25" font-size="11" fill="#333" font-weight="700">45°</text>
+      <path d="M100,20 L115,30" stroke="#333" stroke-width="1" fill="none"/>
+      <text x="135" y="50" font-size="10" fill="#333" font-weight="500">防雨型または防湿型・防雨型</text>
+      <text x="85" y="140" font-size="11" fill="#333">雨線</text>
+      <path d="M108,133 L125,120" stroke="#333" stroke-width="1" fill="none" marker-end="none"/>
+      <text x="15" y="220" font-size="12" fill="#e53e3e" font-weight="700">雨線外</text>
+      <path d="M20,70 L60,110" stroke="#4299e1" stroke-width="1.5" marker-end="url(#arrowR)"/>
+      <path d="M25,85 L65,125" stroke="#4299e1" stroke-width="1.5"/>
+      <path d="M30,100 L70,140" stroke="#4299e1" stroke-width="1.5"/>
+      <text x="10" y="65" font-size="10" fill="#4299e1">雨</text>
+      <defs><marker id="arrowR" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#4299e1"/></marker></defs>
+    </svg>
+    <div style="background:#fff5f5;border-radius:10px;padding:12px;font-size:13px;line-height:1.7;color:#742a2a">
+      <b>雨線外</b>とは、建物の外壁面から45度の角度で引いた仮想線（雨線）より外側のエリアです。<br>
+      雨が直接かかる可能性があるため、この範囲の照明器具は<b>防雨型</b>の器具が必要となります。
+    </div>
+  </div>
+</div>
 <div id="watercap-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:12px;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;border-radius:14px;max-width:440px;width:100%;max-height:80vh;overflow-y:auto;padding:20px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -917,7 +953,7 @@ function copyModalText(){
     try{document.execCommand('copy');const btn=document.getElementById('copy-modal-btn');if(btn){btn.textContent='✅ コピーしました！';setTimeout(()=>{btn.textContent='📋 コピーする';},2000);}}catch(e){alert('テキストエリアを長押し→「すべて選択」→「コピー」してください');}
   }
 }
-const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ抜き','ランプ切れ','使用感（使用形跡）なし','人感センサー連動(建物側）','人感センサー付器具','自動点滅器付き器具'];
+const MODES=['常時点灯','自動点滅器（EE）','タイマー','スイッチ','専有回路','ランプ切れ','ランプなし','使用感（使用形跡）なし','人感センサー連動(建物側）','人感センサー付器具','自動点滅器付き器具','不明'];
 const FLOORS=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
 
 function confirmDel(eid){
@@ -1271,7 +1307,7 @@ function setUncheckedReason(i,v){
 const FNAME_TYPES=[
   {v:'free',   label:'自由入力',             subs:[]},
   {v:'dl',     label:'ダウンライト',          subs:['通常ダウンライト（ランプ下向き）','通常ダウンライト（浅型/ランプ横向き）','ユニバーサルダウンライト','ピンホールダウンライト','傾斜ダウンライト']},
-  {v:'fl',     label:'蛍光灯（直管使用）',     subs:['逆富士形','トラフ形','片笠付トラフ形','両笠付トラフ形','埋込形(単体)','埋込形(連結)','屋外カバー付','直付形']},
+  {v:'fl',     label:'蛍光灯（直管使用）',     subs:['逆富士形','トラフ形','片笠付トラフ形','両笠付トラフ形','埋込形(単体)','埋込形(連結)','プラスチックカバー付','ボックスカバー付','直付形']},
   {v:'rb',     label:'丸形ブラケット',        subs:['格子付','下方配光']},
   {v:'sb',     label:'角型ブラケット',        subs:['格子付','上下配光','下方配光']},
   {v:'lb',     label:'長方形ブラケット',      subs:[]},
@@ -1350,13 +1386,17 @@ function onFnameType(){
   if(v!=='foot'){fnameFootSt='';['wall','ground'].forEach(k=>{const b=document.getElementById('ff-'+k);if(b)b.classList.remove('act-in');});}
   // Default: spot/flood → 建物回路を選択状態
   if(v==='spot'||v==='flood'){if(!fnameCircuitSt){fnameCircuitSt='building';const b=document.getElementById('fc-building');if(b)b.classList.add('act-in');}}
-  // 防水キャップ：蛍光灯（直管使用）のみ表示
-  const wcWrap=document.getElementById('water-cap-wrap');
-  if(wcWrap)wcWrap.style.display=(v==='fl')?'flex':'none';
-  if(v!=='fl'){waterCapSt=false;const wc=document.getElementById('water-cap-chk');if(wc)wc.checked=false;}
+  // 防水キャップ：蛍光灯（直管使用）かつプラスチックカバー付以外のみ表示
+  updateWaterCapVisibility(v);
 }
-function toggleWaterCap(){const chk=document.getElementById('water-cap-chk');waterCapSt=chk?chk.checked:false;saveLS();}
-function onFnameSub(){updateDimLabels();}
+function toggleWaterCap(){waterCapSt=!waterCapSt;const btn=document.getElementById('water-cap-btn');if(btn)btn.className='tbtn'+(waterCapSt?' act-in':'');saveLS();}
+function onFnameSub(){updateDimLabels();updateWaterCapVisibility(gv('fname-type'));}
+function updateWaterCapVisibility(ft){
+  const wcWrap=document.getElementById('water-cap-wrap');
+  const show=(ft==='fl'&&fnameSubSt!=='プラスチックカバー付');
+  if(wcWrap)wcWrap.style.display=show?'flex':'none';
+  if(!show){waterCapSt=false;const btn=document.getElementById('water-cap-btn');if(btn)btn.className='tbtn';}
+}
 // Button-style sub selection
 function setFnameSub(v){
   fnameSubSt=fnameSubSt===v?'':v;
@@ -1369,6 +1409,7 @@ function setFnameSub(v){
 function setFnameSubSelect(v){
   fnameSubSt=v;
   updateDimLabels();
+  updateWaterCapVisibility(gv('fname-type'));
 }
 function setFnameSensor(v){
   fnameSensorSt=fnameSensorSt===v?'':v;
@@ -1930,6 +1971,8 @@ function fRFloor(fid){fFloors=fFloors.filter(f=>f.id!==fid);renderFF();}
 function fFloorChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.floor=v;}
 function fMemoChg(fid,v){const f=fFloors.find(f=>f.id===fid);if(f)f.memo=v;}
 function fAddRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;if(!senyuSt&&f.rows.some(r=>!r.mode)){toast('現在調査中の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}const newMode=senyuSt?'専有回路':'';f.rows.push({id:nextMid++,mode:newMode,count:'',timer:defTimer(),ct:''});renderFF();}
+function fAddNoLampRow(fid){const f=fFloors.find(f=>f.id===fid);if(!f)return;f.rows.push({id:nextMid++,mode:'ランプなし',count:'',timer:defTimer(),ct:''});renderFF();}
+function eAddNoLampRow(eid,fid){const f=findF(eid,fid);if(!f)return;f.rows.push({id:nextMid++,mode:'ランプなし',count:'',timer:'',ct:''});renderEF(eid);}
 // ── 別ランプ (Alt) 用関数群（複数対応） ──
 function renderAltLampList(){
   const el=document.getElementById('alt-lamp-list');if(!el)return;
@@ -2132,7 +2175,7 @@ function renderFF(){
       </div>
       ${altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】 ${getLamp()||'(種別未入力)'}</div>`:''}
       ${renderFloorRows(f.rows,f.id,null,!isGuide)}
-      <button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button>
+      <div style="display:flex;gap:4px;flex-wrap:wrap"><button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="fAddNoLampRow(${f.id})" style="color:#e53e3e">＋ ランプなし</button></div>
       ${(()=>{if(!altLamps.length)return '';if(!f.altGroups)f.altGroups=[];const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return altLamps.map((a,ai)=>{const g=f.altGroups.find(g=>g.altId===a.id);const isActive=!!g;return`<div style="margin-top:6px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:${isActive?'4':'0'}px">
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#2b6cb0;cursor:pointer;flex:1"><input type="checkbox" ${isActive?'checked':''} onchange="fToggleAltGroup(${f.id},${a.id})" style="width:14px;height:14px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</label>
@@ -2160,6 +2203,7 @@ function regEntry(){
   const fullSection=secSub?sec+'　'+secSub:sec;
   if(!sec){toast('設置場所を選択してください','err');highlightErr('sec');return;}
   if(!name&&fixTypeSt!=='eonly'&&fixTypeSt!=='guide'&&ledSt!=='led'){toast('照明名称を入力してください','err');highlightErr('fname-type');return;}
+  if(gv('fname-type')==='fl'&&!fnameSubSt){toast('蛍光灯の種別を選択してください','err');highlightErr('fname-sub-wrap');return;}
   if(fixTypeSt!=='eonly'&&fixTypeSt!=='guide'){
     if(!senyuSt){
       if(ledSt!=='led'){
@@ -2296,7 +2340,7 @@ function editEntry(eid){
 function clearForm(){
   ['watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo','fname-sub-other','fname-sensor-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   fnameSubSt='';fnameSensorSt='';fnameCircuitSt='';fnameFootSt='';poleInstallSt='';
-  waterCapSt=false;const _wcb=document.getElementById('water-cap-chk');if(_wcb)_wcb.checked=false;
+  waterCapSt=false;const _wcb=document.getElementById('water-cap-btn');if(_wcb)_wcb.className='tbtn';
   wattUnknownSt=false;const _wub=document.getElementById('watt-unknown-chk');if(_wub)_wub.checked=false;const _wi=document.getElementById('watt');if(_wi)_wi.disabled=false;
   ledWattUnknownSt=false;const _lwub=document.getElementById('led-watt-unknown-chk');if(_lwub)_lwub.checked=false;const _lwi=document.getElementById('led-watt');if(_lwi)_lwi.disabled=false;
   ledLwattUnknownSt=false;const _llwub=document.getElementById('led-lwatt-unknown-chk');if(_llwub)_llwub.checked=false;const _llwi=document.getElementById('led-lwatt');if(_llwi)_llwi.disabled=false;
@@ -2426,7 +2470,7 @@ function renderEF(eid){
       </div>
       ${e.fix.altLamps&&e.fix.altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
       ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
-      <button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button>
+      <div style="display:flex;gap:4px;flex-wrap:wrap"><button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="eAddNoLampRow(${eid},${f.id})" style="color:#e53e3e">＋ ランプなし</button></div>
       ${(()=>{const als=e.fix.altLamps||[];if(!als.length)return '';const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return als.map((a,ai)=>{const g=f.altGroups?f.altGroups.find(g=>g.altId===a.id):null;if(!g)return '';return`<div style="margin-top:4px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0"><div style="font-size:11px;font-weight:700;color:#2b6cb0;margin-bottom:4px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</div>${renderFloorRows(g.rows,f.id,eid,true)}</div>`;}).join('')})()}
       <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)+(f.altGroups?f.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0)}台</div>
       <input type="text" value="${f.memo}" placeholder="備考・特記"
@@ -2526,7 +2570,7 @@ function applyFix(fix){
     else if(fix.footType==='地面埋込')setFnameFootType('ground');
   }
   // 防水キャップ復元
-  waterCapSt=!!fix.waterCap;const _wcbA=document.getElementById('water-cap-chk');if(_wcbA)_wcbA.checked=waterCapSt;
+  waterCapSt=!!fix.waterCap;const _wcbA=document.getElementById('water-cap-btn');if(_wcbA)_wcbA.className='tbtn'+(waterCapSt?' act-in':'');
   // 誘導灯の設定を復元
   if(fix.fixType==='guide'&&fix.guide){
     const g=fix.guide;
@@ -2688,7 +2732,7 @@ function renderEntries(){
       }
     }
     return`<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;overflow:hidden">
-      <div onclick="toggleSection('${g.sec.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;${isOpen?'background:#f7fafc':''}">
+      <div onclick="toggleSection('${g.sec.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;${isOpen?'background:#ebf8ff;border-bottom:2px solid #3182ce':''}">
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:13px;color:${arrowColor}">${arrow}</span>
           <span style="font-size:14px;font-weight:700;color:#2d3748">${g.sec}</span>
