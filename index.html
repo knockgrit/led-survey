@@ -709,7 +709,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 
 <!-- 登録済み一覧 -->
 <div class="card">
-  <div class="card-title">📋 登録済み器具の確認編集 <span class="badge" id="ecnt">0</span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+    <div class="card-title" style="margin:0">📋 登録済み器具の確認編集 <span class="badge" id="ecnt">0</span></div>
+    <div id="entry-view-toggle" style="display:none;border:1.5px solid #cbd5e0;border-radius:8px;overflow:hidden">
+      <button id="evm-v" onclick="setEntryView('v')" style="padding:4px 10px;font-size:12px;border:none;cursor:pointer;background:#3182ce;color:#fff;font-weight:700">⇕</button>
+      <button id="evm-h" onclick="setEntryView('h')" style="padding:4px 10px;font-size:12px;border:none;cursor:pointer;background:#f7fafc;color:#718096;border-left:1px solid #cbd5e0">⇔</button>
+    </div>
+  </div>
   <div id="elist"><div class="empty">まだ登録されていません</div></div>
 </div>
 
@@ -956,6 +962,9 @@ let recentSections=[];
 let recentLamps=[];
 let uncheckedAreas=[];
 const openCards=new Set();
+const openSections=new Set();
+let entryViewMode='v';
+const sectionHIdx={};
 
 function updH(){document.getElementById('h-bldg').textContent=gv('bldg')||'物件名未入力';}
 function gv(id){return document.getElementById(id)?.value?.trim()||'';}
@@ -2576,52 +2585,154 @@ function getDisplayName(fix){
   if(fix.led&&fix.ledModel)return fix.ledModel;
   return fix.name||'';
 }
+// 場所ごとのグループ化＆通し番号を計算
+function buildSectionGroups(){
+  const secMap=new Map();
+  entries.forEach(e=>{
+    const sec=e.section.split('　')[0]||e.section;
+    if(!secMap.has(sec))secMap.set(sec,[]);
+    secMap.get(sec).push(e);
+  });
+  let globalNo=1;
+  const groups=[];
+  secMap.forEach((ents,sec)=>{
+    const items=ents.map((e,i)=>{
+      const sub=e.section.includes('　')?e.section.split('　').slice(1).join('　'):'';
+      const circled=ents.length>1?toCircled(i+1):'';
+      return{e,no:globalNo++,circled,sub};
+    });
+    groups.push({sec,items});
+  });
+  return groups;
+}
+function toCircled(n){const c='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';return n<=20?c[n-1]:'('+ n+')';}
+function setEntryView(m){
+  entryViewMode=m;
+  document.getElementById('evm-v').style.background=m==='v'?'#3182ce':'#f7fafc';
+  document.getElementById('evm-v').style.color=m==='v'?'#fff':'#718096';
+  document.getElementById('evm-h').style.background=m==='h'?'#3182ce':'#f7fafc';
+  document.getElementById('evm-h').style.color=m==='h'?'#fff':'#718096';
+  renderEntries();
+}
+function renderEntryCard(item,isHoriz){
+  const e=item.e,f=e.fix,no=item.no,circled=item.circled,sub=item.sub;
+  const tags=[];
+  if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
+  if(f.high==='yes')tags.push('<span class="tag t-high">高所あり</span>');
+  if(f.led||(f.fixType==='guide'&&f.guide?.led))tags.push('<span class="tag t-led">LED器具</span>');
+  if(f.lled)tags.push('<span class="tag t-led">旧/LEDランプ</span>');
+  const spec=[f.dim,f.lamp,f.waterCap?'防水キャップあり':'',f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
+  const altSpec=f.altLamps&&f.altLamps.length?f.altLamps.map((a,i)=>`追加${i+1}：${a.lamp||''}${a.watt?' '+a.watt+'W':''}`).join('　'):'';
+  const _mw=[];
+  if(f.fixType!=='eonly'&&f.fixType!=='guide'){
+    if(e.floors.some(fl=>fl.rows.some(r=>!r.ct)))_mw.push('色温度未選択');
+    if(e.floors.some(fl=>fl.rows.some(r=>!r.mode)))_mw.push('点灯方式未選択');
+  }
+  const secLabel=e.section.split('　')[0]+(circled||'');
+  const typeIcon=(f.fixType==='ecomb'||f.fixType==='eonly')?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">非</span>':f.fixType==='guide'?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">誘</span>':'';
+  return`<div class="ecard" data-eid="${e.id}" style="${isHoriz?'min-width:100%;flex-shrink:0':''}">
+    <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
+      <div class="ec-left">
+        <span class="ec-no">No.${no}</span><span class="ec-sec">${secLabel}</span>${sub?'<span style="font-size:11px;color:#718096;margin-left:4px">'+sub+'</span>':''}
+        <div class="ec-name" style="display:flex;align-items:center;gap:4px">${typeIcon}${getDisplayName(f)}</div>
+        ${spec?`<div class="ec-spec">${spec}</div>`:''}
+        ${altSpec?`<div class="ec-spec" style="color:#2b6cb0">${altSpec}</div>`:''}
+        ${tags.length?`<div style="margin-top:4px">${tags.join('')}</div>`:''}
+        ${_mw.length?`<div style="margin-top:3px">${_mw.map(w=>'<span style="color:#e53e3e;font-size:11px;font-weight:700">⚠️'+w+'</span>').join(' ')}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <span style="font-size:18px;color:#a0aec0" id="ecard-arrow-${e.id}">▶</span>
+        <button class="btn btn-sm btn-blue" onclick="event.stopPropagation();editEntry(${e.id})">✏️ 仕様を編集</button>
+        <button class="btn btn-sm btn-red" onclick="event.stopPropagation();confirmDel(${e.id})">削除</button>
+      </div>
+    </div>
+    <div class="ec-body" id="ecbody-${e.id}" style="display:none">
+      <div id="efl-${e.id}"></div>
+      <div class="ec-footer">
+        <button class="btn btn-sm btn-blue" onclick="eAddFloor(${e.id})">＋ フロアを追加</button>
+        <button class="btn btn-sm btn-orange" onclick="copyEntry(${e.id})">📋 この仕様をコピーして新規追加</button>
+      </div>
+    </div>
+  </div>`;
+}
 function renderEntries(){
   const list=document.getElementById('elist');
   document.getElementById('ecnt').textContent=entries.length;
+  const toggle=document.getElementById('entry-view-toggle');
+  if(toggle)toggle.style.display=entries.length?'':'none';
   if(!entries.length){list.innerHTML='<div class="empty">まだ登録されていません</div>';return;}
-  list.innerHTML=entries.map(e=>{
-    const f=e.fix;
-    const tags=[];
-    if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
-    if(f.high==='yes')tags.push('<span class="tag t-high">高所あり</span>');
-    if(f.led||(f.fixType==='guide'&&f.guide?.led)){tags.push('<span class="tag t-led">LED器具</span>');}
-    if(f.lled){tags.push('<span class="tag t-led">旧/LEDランプ</span>');}
-    const spec=[f.dim,f.lamp,f.waterCap?'防水キャップあり':'',f.ct,f.watt?f.watt+'W':'',f.ledModel?'('+f.ledModel+')':''].filter(Boolean).join('　');
-    const altSpec=f.altLamps&&f.altLamps.length?f.altLamps.map((a,i)=>`追加${i+1}：${a.lamp||''}${a.watt?' '+a.watt+'W':''}`).join('　'):''
-    const _missingWarns=[];
-    if(e.fix.fixType!=='eonly'&&e.fix.fixType!=='guide'){
-      const _hasNoCt=e.floors.some(fl=>fl.rows.some(r=>!r.ct));
-      const _hasNoMode=e.floors.some(fl=>fl.rows.some(r=>!r.mode));
-      if(_hasNoCt)_missingWarns.push('色温度未選択');
-      if(_hasNoMode)_missingWarns.push('点灯方式未選択');
+  const groups=buildSectionGroups();
+  list.innerHTML=groups.map(g=>{
+    const isOpen=openSections.has(g.sec);
+    let totalCount=0;
+    g.items.forEach(it=>it.e.floors.forEach(fl=>{totalCount+=calcTot(fl.rows);if(fl.altGroups)fl.altGroups.forEach(ag=>{totalCount+=calcTot(ag.rows);});}));
+    const arrow=isOpen?'▼':'▶';
+    const arrowColor=isOpen?'#3182ce':'#a0aec0';
+    let bodyHtml='';
+    if(isOpen){
+      if(entryViewMode==='h'){
+        const secKey=g.sec.replace(/[^a-zA-Z0-9]/g,'_');
+        const hIdx=sectionHIdx[g.sec]||0;
+        bodyHtml=`<div style="padding:8px 6px;border-top:1.5px solid #e2e8f0">
+          <div style="display:flex;align-items:center;gap:0">
+            <button onclick="hScroll('${secKey}',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#718096;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;touch-action:manipulation">◀</button>
+            <div style="flex:1;overflow:hidden" id="hscroll-${secKey}">
+              <div style="display:flex;transition:transform 0.3s ease" id="hslider-${secKey}">
+                ${g.items.map(it=>renderEntryCard(it,true)).join('')}
+              </div>
+            </div>
+            <button onclick="hScroll('${secKey}',1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#718096;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;touch-action:manipulation">▶</button>
+          </div>
+          <div style="display:flex;justify-content:center;gap:6px;margin-top:8px" id="hdots-${secKey}">
+            ${g.items.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i===hIdx?'#3182ce':'#cbd5e0'}"></div>`).join('')}
+          </div>
+        </div>`;
+      } else {
+        bodyHtml=`<div style="border-top:1.5px solid #e2e8f0">${g.items.map(it=>renderEntryCard(it,false)).join('')}</div>`;
+      }
     }
-    return`<div class="ecard">
-      <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
-        <div class="ec-left">
-          <span class="ec-no">No.${e.id}</span><span class="ec-sec">${e.section}</span>
-          <div class="ec-name" style="display:flex;align-items:center;gap:4px">${(f.fixType==='ecomb'||f.fixType==='eonly')?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">非</span>':f.fixType==='guide'?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">誘</span>':''}${getDisplayName(f)}</div>
-          ${spec?`<div class="ec-spec">${spec}</div>`:''}
-          ${altSpec?`<div class="ec-spec" style="color:#2b6cb0">${altSpec}</div>`:''}
-          ${tags.length?`<div style="margin-top:4px">${tags.join('')}</div>`:''}
-          <div id="ec-warns-${e.id}" style="margin-top:3px">${_missingWarns.map(w=>'<span style="color:#e53e3e;font-size:11px;font-weight:700">⚠️'+w+'</span>').join(' ')}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-          <span style="font-size:18px;color:#a0aec0" id="ecard-arrow-${e.id}">▶</span>
-          <button class="btn btn-sm btn-blue" onclick="event.stopPropagation();editEntry(${e.id})">✏️ 仕様を編集</button>
-          <button class="btn btn-sm btn-red" onclick="event.stopPropagation();confirmDel(${e.id})">削除</button>
+    return`<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <div onclick="toggleSection('${g.sec.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;${isOpen?'background:#f7fafc':''}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;color:${arrowColor}">${arrow}</span>
+          <span style="font-size:14px;font-weight:700;color:#2d3748">${g.sec}</span>
+          <span style="margin-left:auto;font-size:12px;color:#718096">（器具数：${g.items.length}／合計台数：${totalCount}台）</span>
         </div>
       </div>
-      <div class="ec-body" id="ecbody-${e.id}" style="display:none">
-        <div id="efl-${e.id}"></div>
-        <div class="ec-footer">
-          <button class="btn btn-sm btn-blue" onclick="eAddFloor(${e.id})">＋ フロアを追加</button>
-          <button class="btn btn-sm btn-orange" onclick="copyEntry(${e.id})">📋 この仕様をコピーして新規追加</button>
-        </div>
-      </div>
+      ${bodyHtml}
     </div>`;
   }).join('');
-  entries.forEach(e=>{if(openCards.has(e.id)){renderEF(e.id);document.getElementById(`ecbody-${e.id}`).style.display='block';document.getElementById(`ecard-arrow-${e.id}`).textContent='▼';}});
+  // restore open cards
+  entries.forEach(e=>{if(openCards.has(e.id)){renderEF(e.id);const b=document.getElementById(`ecbody-${e.id}`);if(b)b.style.display='block';const a=document.getElementById(`ecard-arrow-${e.id}`);if(a)a.textContent='▼';}});
+  // apply hscroll position
+  if(entryViewMode==='h'){groups.forEach(g=>{const secKey=g.sec.replace(/[^a-zA-Z0-9]/g,'_');applyHScroll(secKey);});}
+}
+function toggleSection(sec){
+  if(openSections.has(sec))openSections.delete(sec);else openSections.add(sec);
+  renderEntries();
+}
+function hScroll(secKey,dir){
+  const sec=Object.keys(sectionHIdx).find(k=>k.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
+  const groups=buildSectionGroups();
+  const g=groups.find(g=>g.sec.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
+  if(!g)return;
+  const realSec=g.sec;
+  let idx=(sectionHIdx[realSec]||0)+dir;
+  if(idx<0)idx=0;if(idx>=g.items.length)idx=g.items.length-1;
+  sectionHIdx[realSec]=idx;
+  applyHScroll(secKey);
+  // update dots
+  const dots=document.getElementById('hdots-'+secKey);
+  if(dots){const ds=dots.children;for(let i=0;i<ds.length;i++)ds[i].style.background=i===idx?'#3182ce':'#cbd5e0';}
+}
+function applyHScroll(secKey){
+  const slider=document.getElementById('hslider-'+secKey);
+  if(!slider)return;
+  const groups=buildSectionGroups();
+  const g=groups.find(g=>g.sec.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
+  if(!g)return;
+  const idx=sectionHIdx[g.sec]||0;
+  slider.style.transform=`translateX(-${idx*100}%)`;
 }
 function toggleECard(eid){
   const body=document.getElementById(`ecbody-${eid}`);
@@ -2791,10 +2902,15 @@ async function doEmailSend(){
     txt+=`🚫 未調査箇所${i+1}：${a.place}${rLbl?' ('+rLbl+')':''}\n`;
   });
 
-  entries.forEach((ent,idx)=>{
+  const _emailGroups=buildSectionGroups();
+  _emailGroups.forEach(g=>{g.items.forEach(item=>{
+    const ent=item.e,idx=item.no;
     const f=ent.fix;
+    const secBase=ent.section.split('　')[0]+(item.circled||'');
+    const secSub=ent.section.includes('　')?ent.section.split('　').slice(1).join('　'):'';
     txt+=`\n━━━━━━━━━━\n`;
-    txt+=`【器具${idx+1}】${ent.section}　${getDisplayName(f)}\n`;
+    txt+=`${idx}.【${secBase}】${secSub?' 詳細場所：'+secSub:''}\n`;
+    txt+=`${getDisplayName(f)}\n`;
     const ftLbl={normal:'通常照明',ecomb:'非常灯兼用',eonly:'非常専用照明',guide:'誘導灯'}[f.fixType]||'';
     if(ftLbl)txt+=`  器具種別：${ftLbl}\n`;
     // LED状態を器具種別の直後に表示
@@ -2882,7 +2998,7 @@ async function doEmailSend(){
       if(fl.memo)txt+=`　※${fl.memo}`;
       txt+='\n';
     });
-  });
+  });});
   // 全器具総台数
   let grandTotal=0;
   entries.forEach(ent=>{ent.floors.forEach(fl=>{grandTotal+=calcTot(fl.rows);if(fl.altGroups)fl.altGroups.forEach(g=>{grandTotal+=calcTot(g.rows);});});});
