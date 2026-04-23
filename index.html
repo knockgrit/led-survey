@@ -2614,7 +2614,7 @@ function setEntryView(m){
   document.getElementById('evm-h').style.color=m==='h'?'#fff':'#718096';
   renderEntries();
 }
-function renderEntryCard(item,isHoriz){
+function renderEntryCard(item,isHoriz,hidden){
   const e=item.e,f=e.fix,no=item.no,circled=item.circled,sub=item.sub;
   const tags=[];
   if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
@@ -2630,7 +2630,7 @@ function renderEntryCard(item,isHoriz){
   }
   const secLabel=e.section.split('　')[0]+(circled||'');
   const typeIcon=(f.fixType==='ecomb'||f.fixType==='eonly')?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">非</span>':f.fixType==='guide'?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">誘</span>':'';
-  return`<div class="ecard" data-eid="${e.id}" style="${isHoriz?'min-width:100%;flex-shrink:0':''}">
+  return`<div class="ecard" data-eid="${e.id}" style="${hidden?'display:none':''}">
     <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
       <div class="ec-left">
         <span class="ec-no">No.${no}</span><span class="ec-sec">${secLabel}</span>${sub?'<span style="font-size:11px;color:#718096;margin-left:4px">'+sub+'</span>':''}
@@ -2673,18 +2673,14 @@ function renderEntries(){
       if(entryViewMode==='h'){
         const secKey=g.sec.replace(/[^a-zA-Z0-9]/g,'_');
         const hIdx=sectionHIdx[g.sec]||0;
-        bodyHtml=`<div style="padding:8px 6px;border-top:1.5px solid #e2e8f0">
-          <div style="display:flex;align-items:center;gap:0">
-            <button onclick="hScroll('${secKey}',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#718096;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;touch-action:manipulation">◀</button>
-            <div style="flex:1;overflow:hidden" id="hscroll-${secKey}">
-              <div style="display:flex;transition:transform 0.3s ease" id="hslider-${secKey}">
-                ${g.items.map(it=>renderEntryCard(it,true)).join('')}
-              </div>
+        bodyHtml=`<div style="border-top:1.5px solid #e2e8f0">
+          ${g.items.map((it,i)=>renderEntryCard(it,false,i!==hIdx)).join('')}
+          <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:8px 0 10px">
+            <button onclick="hScroll('${secKey}',-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#3182ce;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">◀</button>
+            <div style="display:flex;gap:6px" id="hdots-${secKey}">
+              ${g.items.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i===hIdx?'#3182ce':'#cbd5e0'}"></div>`).join('')}
             </div>
-            <button onclick="hScroll('${secKey}',1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#718096;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;touch-action:manipulation">▶</button>
-          </div>
-          <div style="display:flex;justify-content:center;gap:6px;margin-top:8px" id="hdots-${secKey}">
-            ${g.items.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i===hIdx?'#3182ce':'#cbd5e0'}"></div>`).join('')}
+            <button onclick="hScroll('${secKey}',1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#3182ce;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">▶</button>
           </div>
         </div>`;
       } else {
@@ -2704,8 +2700,6 @@ function renderEntries(){
   }).join('');
   // restore open cards
   entries.forEach(e=>{if(openCards.has(e.id)){renderEF(e.id);const b=document.getElementById(`ecbody-${e.id}`);if(b)b.style.display='block';const a=document.getElementById(`ecard-arrow-${e.id}`);if(a)a.textContent='▼';}});
-  // apply hscroll position
-  if(entryViewMode==='h'){groups.forEach(g=>{const secKey=g.sec.replace(/[^a-zA-Z0-9]/g,'_');applyHScroll(secKey);});}
 }
 function toggleSection(sec){
   if(openSections.has(sec))openSections.delete(sec);else openSections.add(sec);
@@ -2720,19 +2714,7 @@ function hScroll(secKey,dir){
   let idx=(sectionHIdx[realSec]||0)+dir;
   if(idx<0)idx=0;if(idx>=g.items.length)idx=g.items.length-1;
   sectionHIdx[realSec]=idx;
-  applyHScroll(secKey);
-  // update dots
-  const dots=document.getElementById('hdots-'+secKey);
-  if(dots){const ds=dots.children;for(let i=0;i<ds.length;i++)ds[i].style.background=i===idx?'#3182ce':'#cbd5e0';}
-}
-function applyHScroll(secKey){
-  const slider=document.getElementById('hslider-'+secKey);
-  if(!slider)return;
-  const groups=buildSectionGroups();
-  const g=groups.find(g=>g.sec.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
-  if(!g)return;
-  const idx=sectionHIdx[g.sec]||0;
-  slider.style.transform=`translateX(-${idx*100}%)`;
+  renderEntries();
 }
 function toggleECard(eid){
   const body=document.getElementById(`ecbody-${eid}`);
