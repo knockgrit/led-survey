@@ -2178,7 +2178,7 @@ function renderFF(){
       </div>
       ${altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】 ${getLamp()||'(種別未入力)'}</div>`:''}
       ${renderFloorRows(f.rows,f.id,null,!isGuide)}
-      <div style="display:flex;gap:4px;flex-wrap:wrap"><button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="fAddNoLampRow(${f.id})" style="color:#e53e3e">＋ ランプなし</button></div>
+      <div style="display:flex;gap:4px"><button class="add-mode-btn" onclick="fAddRow(${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="fAddNoLampRow(${f.id})">＋ ランプなし</button></div>
       ${(()=>{if(!altLamps.length)return '';if(!f.altGroups)f.altGroups=[];const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return altLamps.map((a,ai)=>{const g=f.altGroups.find(g=>g.altId===a.id);const isActive=!!g;return`<div style="margin-top:6px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:${isActive?'4':'0'}px">
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#2b6cb0;cursor:pointer;flex:1"><input type="checkbox" ${isActive?'checked':''} onchange="fToggleAltGroup(${f.id},${a.id})" style="width:14px;height:14px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</label>
@@ -2473,7 +2473,7 @@ function renderEF(eid){
       </div>
       ${e.fix.altLamps&&e.fix.altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
       ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
-      <div style="display:flex;gap:4px;flex-wrap:wrap"><button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="eAddNoLampRow(${eid},${f.id})" style="color:#e53e3e">＋ ランプなし</button></div>
+      <div style="display:flex;gap:4px"><button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="eAddNoLampRow(${eid},${f.id})">＋ ランプなし</button></div>
       ${(()=>{const als=e.fix.altLamps||[];if(!als.length)return '';const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return als.map((a,ai)=>{const g=f.altGroups?f.altGroups.find(g=>g.altId===a.id):null;if(!g)return '';return`<div style="margin-top:4px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0"><div style="font-size:11px;font-weight:700;color:#2b6cb0;margin-bottom:4px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</div>${renderFloorRows(g.rows,f.id,eid,true)}</div>`;}).join('')})()}
       <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)+(f.altGroups?f.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0)}台</div>
       <input type="text" value="${f.memo}" placeholder="備考・特記"
