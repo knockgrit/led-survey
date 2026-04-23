@@ -230,10 +230,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div style="display:flex;gap:6px;align-items:center">
       <select id="sec" style="flex:1" onchange="onSec()">
         <option value="">選択してください</option>
-        <option value="自由入力">自由入力</option>
-        <option>正面</option><option>風除室</option><option>エントランス</option><option>通路</option>
-        <option>階段</option><option>駐輪場</option><option>駐車場</option>
-        <option>植栽</option><option>外構部</option>
+        <option value="自由入力" style="font-weight:bold">＊自由入力＊</option>
+        <option>正面</option><option>風除室</option><option>エントランス</option>
+        <option>外廊下</option><option>内廊下</option><option>外階段</option><option>内階段</option>
+        <option>駐輪場</option><option>駐車場</option><option>外壁</option>
+        <option>ゴミ置き場</option><option>植栽</option><option>外構部</option>
       </select>
       <input type="text" id="sec-sub" placeholder="詳細場所（任意）" style="flex:1;padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#f7fafc">
     </div>
@@ -2294,7 +2295,7 @@ function regEntry(){
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-const SEC_OPTS=['自由入力','正面','風除室','エントランス','通路','階段','駐輪場','駐車場','植栽','外構部'];
+const SEC_OPTS=['自由入力','正面','風除室','エントランス','外廊下','内廊下','外階段','内階段','駐輪場','駐車場','外壁','ゴミ置き場','植栽','外構部'];
 function editEntry(eid){
   const e=findE(eid);if(!e)return;
   // 既に仕様変更中なら元エントリーをentriesに戻す
