@@ -711,10 +711,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 <div class="card">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
     <div class="card-title" style="margin:0">📋 登録済み器具の確認編集 <span class="badge" id="ecnt">0</span></div>
-    <div id="entry-view-toggle" style="display:none;border:1.5px solid #cbd5e0;border-radius:8px;overflow:hidden">
-      <button id="evm-v" onclick="setEntryView('v')" style="padding:4px 10px;font-size:12px;border:none;cursor:pointer;background:#3182ce;color:#fff;font-weight:700">⇕</button>
-      <button id="evm-h" onclick="setEntryView('h')" style="padding:4px 10px;font-size:12px;border:none;cursor:pointer;background:#f7fafc;color:#718096;border-left:1px solid #cbd5e0">⇔</button>
-    </div>
   </div>
   <div id="elist"><div class="empty">まだ登録されていません</div></div>
 </div>
@@ -779,123 +775,108 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       <button onclick="document.getElementById('help-modal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:#718096;padding:4px 8px;line-height:1">✕</button>
     </div>
 
-    <!-- STEP 1 -->
     <div style="background:#ebf8ff;border-radius:10px;padding:14px;margin-bottom:14px">
-      <div style="font-size:15px;font-weight:800;color:#2b6cb0;margin-bottom:10px">STEP 1 ： 物件情報を入力する</div>
-      <div style="font-size:14px;color:#4a5568;line-height:1.9">
-        画面上部にある<b>「建物情報」</b>カードに、物件名やタイマー時間などを入力します。
+      <div style="font-size:15px;font-weight:800;color:#2b6cb0;margin-bottom:10px">STEP 1 ： 建物情報を入力する</div>
+      <div style="font-size:13px;color:#4a5568;line-height:1.8">
+        まず画面上部の<b>「調査実施者」</b>（企業名・氏名）と<b>「建物情報」</b>を入力します。
       </div>
-      <div style="margin-top:10px;background:#fff;border-radius:8px;padding:10px 12px;border:1.5px solid #bee3f8">
-        <div style="font-size:11px;color:#718096;margin-bottom:4px">画面イメージ</div>
-        <div style="background:#f7fafc;border-radius:6px;padding:8px 10px;font-size:13px;color:#2d3748">
-          <div style="font-weight:700;color:#2b6cb0;margin-bottom:6px">🏢 建物情報</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;min-width:60px">物件名</span><span style="flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;color:#a0aec0">例：○○マンション</span></div>
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;min-width:60px">タイマー①</span><span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;color:#a0aec0">--:--</span><span style="font-size:12px">〜</span><span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;color:#a0aec0">--:--</span></div>
-          </div>
-        </div>
+      <div style="margin-top:8px;background:#fff;border-radius:8px;padding:10px;border:1.5px solid #bee3f8;font-size:12px;color:#4a5568;line-height:1.7">
+        <b>物件名</b>（ヘッダーにリアルタイム反映）<br>
+        <b>タイマー①②</b>：点灯〜消灯の時間帯<br>
+        <b>作業天井高</b>：最高天井高（m）<br>
+        <b>分電盤</b>：鍵不要／共通キーで可／専用鍵が必要／不明<br>
+        <b>建物階数範囲</b>：フロア選択肢の範囲を決定<br>
+        <b>未調査箇所</b>：施錠等で調査できなかった場所を記録
       </div>
     </div>
 
-    <!-- STEP 2 -->
     <div style="background:#f0fff4;border-radius:10px;padding:14px;margin-bottom:14px">
-      <div style="font-size:15px;font-weight:800;color:#276749;margin-bottom:10px">STEP 2 ： 器具の情報を登録する</div>
-      <div style="font-size:14px;color:#4a5568;line-height:1.9">
-        <b>設置場所</b>を選び、<b>照明名称</b>を選ぶと、必要な入力欄が自動で表示されます。器具寸法・ランプ種別・消費電力を入力してください。
+      <div style="font-size:15px;font-weight:800;color:#276749;margin-bottom:10px">STEP 2 ： 器具の仕様を入力する</div>
+      <div style="font-size:13px;color:#4a5568;line-height:1.8">
+        上から順に入力していくと、選択内容に応じて必要な欄だけが自動表示されます。
       </div>
-      <div style="margin-top:10px;background:#fff;border-radius:8px;padding:10px 12px;border:1.5px solid #c6f6d5">
-        <div style="font-size:11px;color:#718096;margin-bottom:4px">画面イメージ</div>
-        <div style="background:#f7fafc;border-radius:6px;padding:8px 10px;font-size:13px;color:#2d3748">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:12px;min-width:70px">設置場所</span><span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;flex:1">共用廊下 ▼</span></div>
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:12px;min-width:70px">照明名称</span><span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;flex:1">ダウンライト ▼</span></div>
-          <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;min-width:70px">器具寸法</span><span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;flex:1">丸形（Φ） ▼</span></div>
-          <div style="font-size:11px;color:#718096;margin-top:6px">※ 消費電力がわからない場合は「未確認」にチェック</div>
-        </div>
+      <div style="margin-top:8px;background:#fff;border-radius:8px;padding:10px;border:1.5px solid #c6f6d5;font-size:12px;color:#4a5568;line-height:1.9">
+        <b>1. 設置場所</b>：エントランス・外廊下・駐車場など＋詳細場所（任意）<br>
+        <b>2. 器具種別</b>：通常照明／非常灯兼用／非常専用照明／誘導灯<br>
+        <b>3. LED状態</b>：既にLED器具 or 旧器具にLEDランプ使用<br>
+        <b>4. 照明名称</b>：ダウンライト・蛍光灯等（2段階選択）<br>
+        <span style="color:#718096">　└ 蛍光灯（直管使用）は種別選択が<b style="color:#e53e3e">必須</b></span><br>
+        <b>5. 器具寸法</b>：丸形Φ／正方形□／長方形／ポール等<br>
+        <b>6. ランプ種別</b>：照明名称に連動して候補を表示<br>
+        <span style="color:#718096">　└ 消費電力がわからない場合は「未確認」にチェック</span><br>
+        <b>7. 雨線</b>：雨線外の場合はタップして選択<br>
+        <b>8. 高所作業</b>：ありの場合は高さ・必要機材を入力
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#718096;line-height:1.6;background:#f7fafc;border-radius:6px;padding:8px">
+        蛍光灯（直管使用）でプラスチックカバー付以外を選択すると<b>「防水キャップあり」</b>ボタンが表示されます。口金両端にキャップがある場合はタップしてください。
       </div>
     </div>
 
-    <!-- STEP 3 -->
     <div style="background:#fffff0;border-radius:10px;padding:14px;margin-bottom:14px">
       <div style="font-size:15px;font-weight:800;color:#975a16;margin-bottom:10px">STEP 3 ： フロアごとの台数を入力する</div>
-      <div style="font-size:14px;color:#4a5568;line-height:1.9">
-        <b>「＋ 新規フロアを追加」</b>ボタンを押して、階数・台数・点灯方式を入力します。入力が終わったら<b>「この器具を登録する」</b>を押してください。
+      <div style="font-size:13px;color:#4a5568;line-height:1.8">
+        <b>「＋ 新規フロアを追加」</b>で階数を選び、点灯方式・色温度・台数を入力。入力が終わったら<b>「この器具を登録する」</b>を押します。
       </div>
-      <div style="margin-top:10px;background:#fff;border-radius:8px;padding:10px 12px;border:1.5px solid #fefcbf">
-        <div style="font-size:11px;color:#718096;margin-bottom:4px">画面イメージ</div>
-        <div style="background:#f7fafc;border-radius:6px;padding:8px 10px;font-size:13px;color:#2d3748">
-          <div style="text-align:center;margin-bottom:6px"><span style="display:inline-block;background:#ebf8ff;color:#2b6cb0;border:1.5px solid #bee3f8;border-radius:6px;padding:5px 16px;font-size:12px;font-weight:700">＋ 新規フロアを追加</span></div>
-          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;margin-bottom:6px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px"><span style="font-weight:700">1F</span><span>終夜</span><span style="margin-left:auto;font-weight:700">5台</span></div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="font-weight:700">2F</span><span>終夜</span><span style="margin-left:auto;font-weight:700">3台</span></div>
-          </div>
-          <div style="text-align:center"><span style="display:inline-block;background:#38a169;color:#fff;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700">✓ この器具を登録する</span></div>
-        </div>
-      </div>
-      <div style="margin-top:10px;font-size:13px;color:#4a5568;line-height:1.8">
-        <b>「＋この情報をコピーしてフロア追加」</b>を使うと、同じ点灯方式で別の階をすぐ追加できます。
-      </div>
-      <div style="margin-top:6px;background:#fff;border-radius:8px;padding:8px 12px;border:1.5px solid #fefcbf">
-        <div style="text-align:center"><span style="display:inline-block;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700">＋この情報をコピーしてフロア追加</span></div>
+      <div style="margin-top:8px;background:#fff;border-radius:8px;padding:10px;border:1.5px solid #fefcbf;font-size:12px;color:#4a5568;line-height:1.9">
+        <b>＋ 点灯方式を追加</b>：1つのフロアに複数の点灯方式がある場合<br>
+        <b>＋ 色温度を追加</b>：同じ点灯方式で色温度が異なる場合<br>
+        <b>＋ ランプなし</b>：ランプが付いていないソケットがある場合<br>
+        <b>＋ 同種器具に別ランプ使用</b>：同じ器具で別のランプが使われている場合（複数登録可）<br>
+        <span style="color:#276749;font-weight:700">＋この情報をコピーしてフロア追加</span>：同じ台数構成の別の階をすぐ追加<br>
+        <b>全フロア共通チェック</b>：全フロアの台数を1階目に統一
       </div>
     </div>
 
-    <!-- STEP 4 -->
     <div style="background:#faf5ff;border-radius:10px;padding:14px;margin-bottom:14px">
       <div style="font-size:15px;font-weight:800;color:#6b46c1;margin-bottom:10px">STEP 4 ： 情報をアップロードする</div>
-      <div style="font-size:14px;color:#4a5568;line-height:1.9">
-        全器具の登録が終わったら、画面下部の<b>「情報をアップロード」</b>ボタンを押して送信します。
+      <div style="font-size:13px;color:#4a5568;line-height:1.8">
+        全器具の登録が終わったら、画面下部の<b>「📤 情報をアップロード」</b>を押して送信します。送信後はテキストのコピーも可能です。
       </div>
-      <div style="margin-top:10px;background:#fff;border-radius:8px;padding:10px 12px;border:1.5px solid #e9d8fd">
-        <div style="text-align:center"><span style="display:inline-block;background:#2b6cb0;color:#fff;border-radius:10px;padding:10px 30px;font-size:14px;font-weight:700">📤 情報をアップロード</span></div>
-      </div>
+      <div style="margin-top:8px;text-align:center"><span style="display:inline-block;background:#2b6cb0;color:#fff;border-radius:10px;padding:10px 30px;font-size:14px;font-weight:700">📤 情報をアップロード</span></div>
     </div>
 
-    <!-- 便利機能：ライブラリ -->
-    <div style="background:#fff5f5;border-radius:10px;padding:14px;margin-bottom:14px;border:1.5px solid #fed7d7">
-      <div style="font-size:15px;font-weight:800;color:#c53030;margin-bottom:10px">便利機能</div>
+    <div style="background:#f7fafc;border-radius:10px;padding:14px;margin-bottom:14px;border:1.5px solid #e2e8f0">
+      <div style="font-size:15px;font-weight:800;color:#2d3748;margin-bottom:10px">便利機能</div>
 
       <div style="margin-bottom:12px">
-        <div style="font-size:14px;font-weight:700;color:#2d3748;margin-bottom:6px">📚 ライブラリ再利用</div>
-        <div style="font-size:13px;color:#4a5568;line-height:1.8">
-          同じ器具が別の場所にもある場合、一から入力し直す必要はありません。<br>登録済み器具がライブラリに表示されるので、<b>タップするだけ</b>で情報がコピーされます。設置場所とフロア台数だけ変えればOKです。
+        <div style="font-size:13px;font-weight:700;color:#2b6cb0;margin-bottom:4px">📚 ライブラリ再利用</div>
+        <div style="font-size:12px;color:#4a5568;line-height:1.7">
+          同じ器具が別の場所にもある場合、登録済み器具をタップするだけで情報がコピーされます。設置場所とフロア台数だけ変えればOKです。
         </div>
-        <div style="margin-top:6px;background:#fff;border-radius:8px;padding:8px 12px;border:1px solid #fed7d7">
-          <div style="font-size:11px;color:#718096;margin-bottom:4px">ライブラリ表示例</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:12px;display:flex;justify-content:space-between;align-items:center"><span>ダウンライト　通常ダウンライト</span><span style="color:#3182ce;font-size:10px">タップで使用 →</span></div>
-            <div style="background:#ebf8ff;border:1.5px solid #90cdf4;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center"><span>蛍光灯　逆富士形</span><span style="color:#3182ce;font-size:10px">選択中 ✓</span></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#2b6cb0;margin-bottom:4px">📋 登録済み器具の確認・編集</div>
+        <div style="font-size:12px;color:#4a5568;line-height:1.7">
+          登録済み器具は<b>設置場所ごと</b>にグループ化して表示。場所名をタップで展開し、器具カードをタップで台数の増減が可能です。右上の<b>⇕/⇔ボタン</b>で縦並びと横スクロール表示を切り替えられます。
+        </div>
+        <div style="margin-top:6px;background:#fff;border-radius:6px;padding:6px 10px;border:1px solid #e2e8f0">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+            <span style="display:inline-block;background:#2b6cb0;color:#fff;border-radius:6px;padding:3px 10px;font-weight:700">▼ エントランス</span>
+            <span style="color:#718096;font-size:11px">（器具数：3／合計台数：17台）</span>
           </div>
         </div>
       </div>
 
       <div style="margin-bottom:12px">
-        <div style="font-size:14px;font-weight:700;color:#2d3748;margin-bottom:6px">✏️ 登録済み器具の確認・編集</div>
-        <div style="font-size:13px;color:#4a5568;line-height:1.8">
-          登録済みの器具カードをタップすると詳細を確認できます。<b>「台数変更」</b>ボタンを押すと、別フロアのランプ台数をクリックだけで増減できます。<b>「仕様編集」</b>で登録内容の修正も可能です。
-        </div>
-        <div style="margin-top:6px;background:#fff;border-radius:8px;padding:8px 12px;border:1px solid #fed7d7">
-          <div style="font-size:11px;color:#718096;margin-bottom:4px">編集ボタン例</div>
-          <div style="display:flex;gap:6px;justify-content:center">
-            <span style="display:inline-block;background:#ebf8ff;color:#2b6cb0;border:1px solid #bee3f8;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700">台数変更</span>
-            <span style="display:inline-block;background:#fefcbf;color:#975a16;border:1px solid #fefcbf;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700">仕様編集</span>
-            <span style="display:inline-block;background:#fed7d7;color:#c53030;border:1px solid #fed7d7;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700">削除</span>
-          </div>
+        <div style="font-size:13px;font-weight:700;color:#2b6cb0;margin-bottom:4px">📊 Excelに保存</div>
+        <div style="font-size:12px;color:#4a5568;line-height:1.7">
+          「Excelに保存」ボタンで調査データをExcelファイルとしてダウンロードできます。
         </div>
       </div>
 
       <div>
-        <div style="font-size:14px;font-weight:700;color:#2d3748;margin-bottom:6px">💾 データの自動保存</div>
-        <div style="font-size:13px;color:#4a5568;line-height:1.8">
-          入力データは自動で保存されます。<br>途中でページを閉じても、次に開いたときに続きから入力できます。
+        <div style="font-size:13px;font-weight:700;color:#2b6cb0;margin-bottom:4px">💾 データの自動保存</div>
+        <div style="font-size:12px;color:#4a5568;line-height:1.7">
+          入力データは自動で保存されます。途中でページを閉じても、次に開いたときに続きから入力できます。
         </div>
       </div>
     </div>
 
-    <!-- 注意事項 -->
     <div style="background:#fff5f5;border-radius:10px;padding:12px;margin-bottom:14px;border:2px solid #fc8181">
       <div style="font-size:14px;font-weight:800;color:#c53030;margin-bottom:6px">⚠ ご注意</div>
       <div style="font-size:13px;color:#4a5568;line-height:1.8">
-        画面上部の<b style="color:#e53e3e">「全ての情報をリセットして新規登録」</b>ボタンを押すと、<b style="color:#e53e3e">登録済みデータが全て消えます</b>。新しい物件の調査を始めるとき以外は押さないでください。
+        画面上部の<b style="color:#e53e3e">「全ての情報をリセットして新規登録」</b>を押すと、<b style="color:#e53e3e">登録済みデータが全て消えます</b>。新しい物件の調査を始めるとき以外は絶対に押さないでください。
       </div>
     </div>
 
@@ -940,6 +921,7 @@ function confirmDel(eid){
 let entries=[],library=[],fFloors=[];
 let nextId=1,nextFid=1,nextMid=1;
 let editingId=null;
+let _copySrcId=null,_copySrcFix=null;
 let _editBackup=null;
 const FLOOR_ORDER=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上','その他'];
 function sortByFloor(floors){floors.sort((a,b)=>{if(!a.floor)return 1;if(!b.floor)return -1;const ai=FLOOR_ORDER.indexOf(a.floor),bi=FLOOR_ORDER.indexOf(b.floor);return(ai===-1?999:ai)-(bi===-1?999:bi);});}
@@ -976,8 +958,6 @@ let recentLamps=[];
 let uncheckedAreas=[];
 const openCards=new Set();
 const openSections=new Set();
-let entryViewMode='v';
-const sectionHIdx={};
 
 function updH(){document.getElementById('h-bldg').textContent=gv('bldg')||'物件名未入力';}
 function gv(id){return document.getElementById(id)?.value?.trim()||'';}
@@ -2034,10 +2014,9 @@ function fRModeGroup(fid,firstRowId){
 }
 function eRModeGroup(eid,fid,firstRowId){
   const f=findF(eid,fid);if(!f)return;
-  const ref=f.rows.find(r=>r.id===firstRowId);
-  const mode=ref?ref.mode:'__none__';
-  f.rows=f.rows.filter(r=>r.mode!==mode);
-  if(!f.rows.length)f.rows=[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];
+  let ref=f.rows.find(r=>r.id===firstRowId);
+  if(ref){const mode=ref.mode;f.rows=f.rows.filter(r=>r.mode!==mode);if(!f.rows.length)f.rows=[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];}
+  else if(f.altGroups){for(const g of f.altGroups){ref=g.rows.find(r=>r.id===firstRowId);if(ref){const mode=ref.mode;g.rows=g.rows.filter(r=>r.mode!==mode);if(!g.rows.length)g.rows=[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];break;}}}
   renderEF(eid);
 }
 // グループ全行のmode一括変更
@@ -2052,10 +2031,13 @@ function fMCGroup(fid,firstRowId,v){
 }
 function eMCGroup(eid,fid,firstRowId,v){
   const f=findF(eid,fid);if(!f)return;
-  const ref=f.rows.find(r=>r.id===firstRowId);if(!ref)return;
+  let ref=f.rows.find(r=>r.id===firstRowId);
+  let targetRows=f.rows;
+  if(!ref&&f.altGroups){for(const g of f.altGroups){ref=g.rows.find(r=>r.id===firstRowId);if(ref){targetRows=g.rows;break;}}}
+  if(!ref)return;
   const oldMode=ref.mode;
   const t=autoTimer(v);
-  f.rows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});
+  targetRows.filter(r=>r.mode===oldMode).forEach(r=>{r.mode=v;if(t!==undefined)r.timer=t;});
   renderEF(eid);updateECardWarns(eid);
 }
 function fRRow(fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=fFloors.find(f=>f.id===fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderFF();}
@@ -2251,7 +2233,13 @@ function regEntry(){
   const wasEditing=editingId!==null;
   const eid2=wasEditing?editingId:nextId++;
   if(wasEditing){editingId=null;_editBackup=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');}
-  entries.push({id:eid2,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors))});
+  let copiedFrom=null;
+  if(_copySrcId&&_copySrcFix&&!wasEditing){
+    const sf=_copySrcFix;
+    if(sf.name===fix.name&&sf.fixType===fix.fixType&&sf.led===fix.led&&sf.lled===fix.lled&&sf.lamp===fix.lamp&&sf.lampCount===fix.lampCount&&sf.watt===fix.watt&&sf.dim===fix.dim)copiedFrom=_copySrcId;
+  }
+  _copySrcId=null;_copySrcFix=null;
+  entries.push({id:eid2,section:fullSection,fix,floors:JSON.parse(JSON.stringify(fFloors)),copiedFrom});
   entries.sort((a,b)=>a.id-b.id);
   if(fullSection&&!recentSections.includes(fullSection)){recentSections.unshift(fullSection);if(recentSections.length>15)recentSections.pop();}
   const lampVal=getLamp();
@@ -2373,15 +2361,15 @@ function clearForm(){
 // ── エントリー：インライン編集 ──
 function findE(eid){return entries.find(e=>e.id===eid);}
 function findF(eid,fid){return findE(eid)?.floors.find(f=>f.id===fid);}
-function findR(eid,fid,mid){return findF(eid,fid)?.rows.find(r=>r.id===mid);}
+function findR(eid,fid,mid){const f=findF(eid,fid);if(!f)return null;let r=f.rows.find(r=>r.id===mid);if(r)return r;if(f.altGroups){for(const g of f.altGroups){r=g.rows.find(r=>r.id===mid);if(r)return r;}}return null;}
 
 function eMC(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r){r.mode=v;const t=autoTimer(v);if(t!==undefined)r.timer=t;renderEF(eid);updateECardWarns(eid);}}
-function eCC(eid,fid,mid,v){const f=findF(eid,fid),r=findR(eid,fid,mid);if(r){r.count=v;const el=document.getElementById(`etot-${eid}-${fid}`);if(el&&f)el.textContent='合計：'+calcTot(f.rows)+'台';}}
+function eCC(eid,fid,mid,v){const f=findF(eid,fid),r=findR(eid,fid,mid);if(r){r.count=v;const el=document.getElementById(`etot-${eid}-${fid}`);if(el&&f){let tot=calcTot(f.rows);if(f.altGroups)f.altGroups.forEach(g=>{tot+=calcTot(g.rows);});el.textContent='合計：'+tot+'台';}}}
 function eTC(eid,fid,mid,v){const r=findR(eid,fid,mid);if(r)r.timer=v;}
 function eFlChg(eid,fid,v){const f=findF(eid,fid);if(f)f.floor=v;}
 function eMemoChg(eid,fid,v){const f=findF(eid,fid);if(f)f.memo=v;}
 function eAddRow(eid,fid){const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>!r.mode)){toast('現在の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);updateECardWarns(eid);}
-function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(f)f.rows=f.rows.filter(r=>r.id!==mid);renderEF(eid);updateECardWarns(eid);}
+function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>r.id===mid)){f.rows=f.rows.filter(r=>r.id!==mid);}else if(f.altGroups){f.altGroups.forEach(g=>{g.rows=g.rows.filter(r=>r.id!==mid);});}renderEF(eid);updateECardWarns(eid);}
 function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:'',altGroups:[]});}renderEF(eid);}
 function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
 function delEntry(id){
@@ -2400,6 +2388,8 @@ function resetAll(){
 }
 function copyEntry(eid){
   const e=findE(eid);if(!e)return;
+  _copySrcId=eid;
+  _copySrcFix={name:e.fix.name,fixType:e.fix.fixType,led:e.fix.led,lled:e.fix.lled,lamp:e.fix.lamp,lampCount:e.fix.lampCount,watt:e.fix.watt,dim:e.fix.dim};
   applyFix(e.fix);
   document.getElementById('sec').value='';
   const _ot=document.getElementById('sec-other-row');if(_ot)_ot.style.display='none';
@@ -2464,7 +2454,14 @@ function refreshLib(){
   if(!sec||!grid)return;
   if(!entries.length){sec.style.display='none';return;}
   sec.style.display='block';
-  grid.innerHTML=entries.map((e)=>{
+  const seen=new Set();
+  const uniqueEntries=entries.filter(e=>{
+    const f=e.fix;
+    const key=[f.fixType||'',f.led?'led':'',f.lled?'lled':'',f.name||'',f.lamp||'',f.lampCount||'1',f.watt||'',f.dim||''].join('|');
+    if(seen.has(key))return false;
+    seen.add(key);return true;
+  });
+  grid.innerHTML=uniqueEntries.map((e)=>{
     const f=e.fix;
     const isEmg=f.fixType==='ecomb'||f.fixType==='eonly';
     const isGuide=f.fixType==='guide';
@@ -2627,15 +2624,7 @@ function buildSectionGroups(){
   return groups;
 }
 function toCircled(n){const c='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';return n<=20?c[n-1]:'('+ n+')';}
-function setEntryView(m){
-  entryViewMode=m;
-  document.getElementById('evm-v').style.background=m==='v'?'#3182ce':'#f7fafc';
-  document.getElementById('evm-v').style.color=m==='v'?'#fff':'#718096';
-  document.getElementById('evm-h').style.background=m==='h'?'#3182ce':'#f7fafc';
-  document.getElementById('evm-h').style.color=m==='h'?'#fff':'#718096';
-  renderEntries();
-}
-function renderEntryCard(item,isHoriz,hidden){
+function renderEntryCard(item){
   const e=item.e,f=e.fix,no=item.no,circled=item.circled,sub=item.sub;
   const tags=[];
   if(f.rain==='out')tags.push('<span class="tag t-rain">雨線外</span>');
@@ -2651,10 +2640,10 @@ function renderEntryCard(item,isHoriz,hidden){
   }
   const secLabel=e.section.split('　')[0]+(circled||'');
   const typeIcon=(f.fixType==='ecomb'||f.fixType==='eonly')?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">非</span>':f.fixType==='guide'?'<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#3182ce;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">誘</span>':'';
-  return`<div class="ecard" data-eid="${e.id}" style="${hidden?'display:none':''}">
+  return`<div class="ecard" data-eid="${e.id}" >
     <div class="ec-head" onclick="toggleECard(${e.id})" style="cursor:pointer">
       <div class="ec-left">
-        <span class="ec-no">No.${no}</span><span class="ec-sec">${secLabel}</span>${sub?'<span style="font-size:11px;color:#718096;margin-left:4px">'+sub+'</span>':''}
+        <span class="ec-no">登録No.${e.id}</span><span class="ec-sec">${secLabel}</span>${sub?'<span style="font-size:11px;color:#718096;margin-left:4px">'+sub+'</span>':''}${e.copiedFrom?'<div style="font-size:11px;color:#718096">※'+e.copiedFrom+'よりコピー</div>':''}
         <div class="ec-name" style="display:flex;align-items:center;gap:4px">${typeIcon}${getDisplayName(f)}</div>
         ${spec?`<div class="ec-spec">${spec}</div>`:''}
         ${altSpec?`<div class="ec-spec" style="color:#2b6cb0">${altSpec}</div>`:''}
@@ -2679,8 +2668,6 @@ function renderEntryCard(item,isHoriz,hidden){
 function renderEntries(){
   const list=document.getElementById('elist');
   document.getElementById('ecnt').textContent=entries.length;
-  const toggle=document.getElementById('entry-view-toggle');
-  if(toggle)toggle.style.display=entries.length?'':'none';
   if(!entries.length){list.innerHTML='<div class="empty">まだ登録されていません</div>';return;}
   const groups=buildSectionGroups();
   list.innerHTML=groups.map(g=>{
@@ -2691,22 +2678,7 @@ function renderEntries(){
     const arrowColor=isOpen?'#3182ce':'#a0aec0';
     let bodyHtml='';
     if(isOpen){
-      if(entryViewMode==='h'){
-        const secKey=g.sec.replace(/[^a-zA-Z0-9]/g,'_');
-        const hIdx=sectionHIdx[g.sec]||0;
-        bodyHtml=`<div style="border-top:1.5px solid #e2e8f0">
-          ${g.items.map((it,i)=>renderEntryCard(it,false,i!==hIdx)).join('')}
-          <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:8px 0 10px">
-            <button onclick="hScroll('${secKey}',-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#3182ce;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">◀</button>
-            <div style="display:flex;gap:6px" id="hdots-${secKey}">
-              ${g.items.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i===hIdx?'#3182ce':'#cbd5e0'}"></div>`).join('')}
-            </div>
-            <button onclick="hScroll('${secKey}',1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #cbd5e0;background:#f7fafc;color:#3182ce;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">▶</button>
-          </div>
-        </div>`;
-      } else {
-        bodyHtml=`<div style="border-top:1.5px solid #e2e8f0">${g.items.map(it=>renderEntryCard(it,false)).join('')}</div>`;
-      }
+      bodyHtml=`<div style="border-top:1.5px solid #e2e8f0">${g.items.map(it=>renderEntryCard(it)).join('')}</div>`;
     }
     return`<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;overflow:hidden">
       <div onclick="toggleSection('${g.sec.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;background:#2b6cb0;border-radius:${isOpen?'8px 8px 0 0':'8px'}">
@@ -2726,43 +2698,14 @@ function toggleSection(sec){
   if(openSections.has(sec))openSections.delete(sec);else openSections.add(sec);
   renderEntries();
 }
-function hScroll(secKey,dir){
-  const sec=Object.keys(sectionHIdx).find(k=>k.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
-  const groups=buildSectionGroups();
-  const g=groups.find(g=>g.sec.replace(/[^a-zA-Z0-9]/g,'_')===secKey);
-  if(!g)return;
-  const realSec=g.sec;
-  let idx=(sectionHIdx[realSec]||0)+dir;
-  if(idx<0)idx=0;if(idx>=g.items.length)idx=g.items.length-1;
-  sectionHIdx[realSec]=idx;
-  renderEntries();
-}
 function toggleECard(eid){
   const body=document.getElementById(`ecbody-${eid}`);
   const arrow=document.getElementById(`ecard-arrow-${eid}`);
   if(!body)return;
   const open=body.style.display==='none'||body.style.display==='';
-  if(entryViewMode==='h'){
-    // 横スクロール時は同じ場所の全器具を一括開閉
-    const groups=buildSectionGroups();
-    for(const g of groups){
-      const ids=g.items.map(it=>it.e.id);
-      if(ids.includes(eid)){
-        ids.forEach(id=>{
-          const b=document.getElementById(`ecbody-${id}`);
-          const a=document.getElementById(`ecard-arrow-${id}`);
-          if(b){b.style.display=open?'block':'none';}
-          if(a)a.textContent=open?'▼':'▶';
-          if(open){openCards.add(id);renderEF(id);}else{openCards.delete(id);}
-        });
-        break;
-      }
-    }
-  } else {
-    body.style.display=open?'block':'none';
-    if(arrow)arrow.textContent=open?'▼':'▶';
-    if(open){openCards.add(eid);renderEF(eid);}else{openCards.delete(eid);}
-  }
+  body.style.display=open?'block':'none';
+  if(arrow)arrow.textContent=open?'▼':'▶';
+  if(open){openCards.add(eid);renderEF(eid);}else{openCards.delete(eid);}
 }
 
 // ── Excel出力 ──
@@ -2931,6 +2874,7 @@ async function doEmailSend(){
     const secSub=ent.section.includes('　')?ent.section.split('　').slice(1).join('　'):'';
     txt+=`\n━━━━━━━━━━\n`;
     txt+=`${idx}.【${secBase}】${secSub?' 詳細場所：'+secSub:''}\n`;
+    if(ent.copiedFrom)txt+=`※${ent.copiedFrom}よりコピー\n`;
     txt+=`${getDisplayName(f)}\n`;
     const ftLbl={normal:'通常照明',ecomb:'非常灯兼用',eonly:'非常専用照明',guide:'誘導灯'}[f.fixType]||'';
     if(ftLbl)txt+=`  器具種別：${ftLbl}\n`;
@@ -2976,9 +2920,15 @@ async function doEmailSend(){
     if(_circuitLbl)txt+=`  回路種別：${_circuitLbl}\n`;
     if(_footLbl)txt+=`  設置タイプ：${_footLbl}\n`;
     if(f.dim){let _dim=f.dim.replace(/(\d+)\s*[φΦ]\s*/g,'Φ$1');_dim=_dim.replace(/(.+?)(\d+)mm×(.+?)(\d+)mm/,(m,p1,n1,p2,n2)=>{const a=Number(n1),b=Number(n2);return a<=b?m:p2+n2+'mm×'+p1+n1+'mm';});txt+=`  寸法：${_dim}\n`;}
-    if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}${f.waterCap?' (防水キャップあり)':''}\n`;
-    if(!f.led&&f.watt)txt+=`  消費電力：${f.watt==='未確認'?'未確認':f.watt+'W'}\n`;
-    if(f.altLamps&&f.altLamps.length){f.altLamps.forEach((a,i)=>{txt+=`  追加ランプ${i+1}：${a.lamp||'(種別未入力)'}${a.watt?' '+a.watt+'W':''}\n`;});}
+    const hasAltsInfo=f.altLamps&&f.altLamps.length;
+    if(hasAltsInfo){
+      if(f.lamp)txt+=`  ◆メインランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}${f.waterCap?' (防水キャップあり)':''}\n`;
+      if(!f.led&&f.watt)txt+=`  消費電力：${f.watt==='未確認'?'未確認':f.watt+'W'}\n`;
+      f.altLamps.forEach((a,i)=>{txt+=`  ◆追加ランプ${i+1}：${a.lamp||'(種別未入力)'}\n`;if(a.watt)txt+=`  消費電力：${a.watt}W\n`;});
+    } else {
+      if(f.lamp)txt+=`  ランプ：${f.lamp}${f.lampCount&&f.lampCount!=='1'?' '+f.lampCount+'灯式':''}${f.waterCap?' (防水キャップあり)':''}\n`;
+      if(!f.led&&f.watt)txt+=`  消費電力：${f.watt==='未確認'?'未確認':f.watt+'W'}\n`;
+    }
     if(f.rain==='out'||f.rain==='unk'){
       const rr={out:'雨線外',unk:'未確認','':''}[f.rain]||'';
       txt+=`  雨線：${rr}${f.rainC?'（'+f.rainC+'）':''}\n`;
@@ -3014,7 +2964,7 @@ async function doEmailSend(){
         const _altTotFl=fl.altGroups?fl.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0;
         txt+=`  📍${fl.floor}：合計${tot+_altTotFl}台`;
         const hasAlts=ent.fix.altLamps&&ent.fix.altLamps.length&&fl.altGroups&&fl.altGroups.length;
-        if(hasAlts){if(ms)txt+=`\n    →${ent.fix.lamp||'メインランプ'}：${ms}`;fl.altGroups.forEach(ag=>{const aInfo=ent.fix.altLamps.find(a=>a.id===ag.altId);const _amg={};ag.rows.filter(r=>r.mode).forEach(r=>{const lbl=convMode(r.mode,r.timer);if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →${aInfo?aInfo.lamp||'追加ランプ':'追加ランプ'}：${ams}`;});}else{if(ms)txt+=`→${ms}`;}
+        if(hasAlts){if(ms)txt+=`\n    →メイン：${ms}`;fl.altGroups.forEach((ag,agi)=>{const aInfo=ent.fix.altLamps.find(a=>a.id===ag.altId);const altIdx=aInfo?ent.fix.altLamps.indexOf(aInfo)+1:agi+1;const _amg={};ag.rows.filter(r=>r.mode).forEach(r=>{const lbl=convMode(r.mode,r.timer);if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →追加${altIdx}：${ams}`;});}else{if(ms)txt+=`→${ms}`;}
       }
       if(fl.memo)txt+=`　※${fl.memo}`;
       txt+='\n';
