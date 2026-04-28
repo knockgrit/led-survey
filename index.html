@@ -2370,6 +2370,39 @@ function eFlChg(eid,fid,v){const f=findF(eid,fid);if(f)f.floor=v;}
 function eMemoChg(eid,fid,v){const f=findF(eid,fid);if(f)f.memo=v;}
 function eAddRow(eid,fid){const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>!r.mode)){toast('現在の点灯方式が未選択です。そちらを選択してから追加してください','err');return;}f.rows.push({id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''});renderEF(eid);updateECardWarns(eid);}
 function eRRow(eid,fid,mid){if(!confirm('削除すると戻せませんがよろしいですか？'))return;const f=findF(eid,fid);if(!f)return;if(f.rows.some(r=>r.id===mid)){f.rows=f.rows.filter(r=>r.id!==mid);}else if(f.altGroups){f.altGroups.forEach(g=>{g.rows=g.rows.filter(r=>r.id!==mid);});}renderEF(eid);updateECardWarns(eid);}
+function eAddAltLamp(eid,fid){
+  const e=findE(eid);if(!e)return;
+  if(!e.fix.altLamps)e.fix.altLamps=[];
+  const newId=e.fix.altLamps.length?Math.max(...e.fix.altLamps.map(a=>a.id))+1:1;
+  const lamp=prompt('追加ランプの種別を入力（例：LDT6D-G）');if(lamp===null)return;
+  const watt=prompt('消費電力（W）を入力（不明なら空欄）')||'';
+  e.fix.altLamps.push({id:newId,lamp:lamp||'',watt});
+  // 全フロアにチェック済みで追加
+  e.floors.forEach(f=>{if(!f.altGroups)f.altGroups=[];f.altGroups.push({altId:newId,rows:[{id:nextMid++,mode:'',count:'',timer:'',ct:''}]});});
+  renderEF(eid);renderEntries();saveLS();
+}
+function eRemoveAltLamp(eid,aid){
+  const e=findE(eid);if(!e)return;
+  const hasData=e.floors.some(f=>f.altGroups&&f.altGroups.some(g=>g.altId===aid&&g.rows.some(r=>r.count&&Number(r.count)>0)));
+  if(hasData&&!confirm('この追加ランプの台数データも全て削除されます。よろしいですか？'))return;
+  e.fix.altLamps=e.fix.altLamps.filter(a=>a.id!==aid);
+  e.floors.forEach(f=>{if(f.altGroups)f.altGroups=f.altGroups.filter(g=>g.altId!==aid);});
+  renderEF(eid);renderEntries();saveLS();
+}
+function eToggleAltGroup(eid,fid,aid){
+  const f=findF(eid,fid);if(!f)return;
+  if(!f.altGroups)f.altGroups=[];
+  const idx=f.altGroups.findIndex(g=>g.altId===aid);
+  if(idx>=0){
+    const g=f.altGroups[idx];
+    const hasData=g.rows.some(r=>r.count&&Number(r.count)>0);
+    if(hasData&&!confirm('この追加ランプの台数データを削除しますか？'))return;
+    f.altGroups.splice(idx,1);
+  } else {
+    f.altGroups.push({altId:aid,rows:[{id:nextMid++,mode:'',count:'',timer:'',ct:''}]});
+  }
+  renderEF(eid);
+}
 function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:'',altGroups:[]});}renderEF(eid);}
 function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
 function delEntry(id){
@@ -2438,7 +2471,14 @@ function renderEF(eid){
       ${e.fix.altLamps&&e.fix.altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
       ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
       <div style="display:flex;gap:4px"><button class="add-mode-btn" onclick="eAddRow(${eid},${f.id})">＋ 点灯方式を追加</button><button class="add-mode-btn" onclick="eAddNoLampRow(${eid},${f.id})">＋ ランプなし</button></div>
-      ${(()=>{const als=e.fix.altLamps||[];if(!als.length)return '';const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return als.map((a,ai)=>{const g=f.altGroups?f.altGroups.find(g=>g.altId===a.id):null;if(!g)return '';return`<div style="margin-top:4px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0"><div style="font-size:11px;font-weight:700;color:#2b6cb0;margin-bottom:4px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}</div>${renderFloorRows(g.rows,f.id,eid,true)}</div>`;}).join('')})()}
+      ${(()=>{const als=e.fix.altLamps||[];if(!als.length)return '';const colors=['#ebf8ff','#fef3c7','#e9d8fd','#c6f6d5'];return als.map((a,ai)=>{const g=f.altGroups?f.altGroups.find(g=>g.altId===a.id):null;const isActive=!!g;return`<div style="margin-top:6px;padding:4px 6px;background:${colors[ai%colors.length]};border-radius:6px;border:1px solid #cbd5e0">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:${isActive?'4':'0'}px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#2b6cb0;cursor:pointer;flex:1"><input type="checkbox" ${isActive?'checked':''} onchange="eToggleAltGroup(${eid},${f.id},${a.id})" style="width:14px;height:14px">【追加ランプ${ai+1}】${a.lamp||'(種別未入力)'}${a.watt?' '+a.watt+'W':''}</label>
+          <button onclick="eRemoveAltLamp(${eid},${a.id})" style="background:#fed7d7;color:#c53030;border:none;border-radius:6px;padding:2px 6px;font-size:10px;cursor:pointer">削除</button>
+        </div>
+        ${isActive?renderFloorRows(g.rows,f.id,eid,true):''}
+      </div>`;}).join('')})()}
+      <button class="add-mode-btn" onclick="eAddAltLamp(${eid},${f.id})" style="margin-top:4px;color:#2b6cb0;font-size:12px">＋ 同種器具に別ランプ使用</button>
       <div class="fl-total" id="etot-${eid}-${f.id}">合計：${calcTot(f.rows)+(f.altGroups?f.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0)}台</div>
       <input type="text" value="${f.memo}" placeholder="備考・特記"
         style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
