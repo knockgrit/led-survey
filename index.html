@@ -2243,10 +2243,7 @@ function renderFF(){
       <input type="text" value="${f.memo}" placeholder="備考・特記（例：1台器具破損あり）"
         style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
         oninput="fMemoChg(${f.id},this.value)">
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="btn btn-sm" style="flex:1;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:8px;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="fCopyFloor(${f.id})">＋この情報をコピーしてフロア追加</button>
-        <button class="btn btn-sm btn-blue" style="flex:1;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="addOneFFAfter(${f.id})">＋新規フロアを追加</button>
-      </div>
+      <div style="margin-top:8px"><button class="btn btn-sm btn-blue" style="width:100%;font-size:12px;padding:6px 4px;touch-action:manipulation" onclick="showFloorAddPopup(${f.id})">＋ フロアを追加</button></div>
     </div>`;
   }).join('');
   updateRegBtn();
@@ -2503,6 +2500,103 @@ function eToggleAltGroup(eid,fid,aid){
   renderEF(eid);
 }
 function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.floors[e.floors.length-1]:null;const newRows=lastF?lastF.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:'',altGroups:[]});}renderEF(eid);}
+let _eFloorAddEid=null;
+const _eFloorAddSelected=new Set();
+function showEFloorAddPopup(eid){
+  _eFloorAddEid=eid;_eFloorAddSelected.clear();
+  document.getElementById('floor-add-step1').style.display='';
+  document.getElementById('floor-add-step2').style.display='none';
+  // Override actions for entry mode
+  _floorAddSrcFid=null;_floorAddMode='entry';
+  document.getElementById('floor-add-modal').style.display='flex';
+}
+// Reuse the same modal but branch by mode
+let _floorAddMode='form';
+// Override floorAddAction to handle entry mode
+const _origFloorAddAction=floorAddAction;
+floorAddAction=function(type){
+  if(_floorAddMode==='entry'){
+    const e=findE(_eFloorAddEid);if(!e)return;
+    if(type==='copy1'){
+      document.getElementById('floor-add-modal').style.display='none';
+      eCopyFloor2(_eFloorAddEid);
+    } else if(type==='new'){
+      document.getElementById('floor-add-modal').style.display='none';
+      eAddFloor(_eFloorAddEid);
+    } else if(type==='copyMulti'){
+      document.getElementById('floor-add-step1').style.display='none';
+      document.getElementById('floor-add-step2').style.display='';
+      _eFloorAddSelected.clear();
+      renderEFloorAddGrid();
+    }
+  } else {
+    _origFloorAddAction(type);
+  }
+};
+function eCopyFloor2(eid){
+  const e=findE(eid);if(!e||!e.floors.length)return;
+  const src=e.floors[e.floors.length-1];
+  const newRows=src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  const newAltGs=src.altGroups?src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[];
+  e.floors.push({id:nextFid++,floor:'',rows:newRows,memo:src.memo,altGroups:newAltGs});
+  renderEF(eid);
+}
+function renderEFloorAddGrid(){
+  const grid=document.getElementById('floor-add-grid');
+  const all=getFloorRange();
+  const e=findE(_eFloorAddEid);
+  const used=new Set(e?e.floors.map(f=>f.floor).filter(Boolean):[]);
+  grid.innerHTML=all.map(fl=>{
+    const isUsed=used.has(fl);
+    const isSel=_eFloorAddSelected.has(fl);
+    const oc=isUsed?'':("toggleEFloorAddSel('"+fl+"')");
+    return`<button onclick="${oc}" style="padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:${isUsed?'not-allowed':'pointer'};touch-action:manipulation;border:1.5px solid ${isUsed?'#e2e8f0':isSel?'#3182ce':'#cbd5e0'};background:${isUsed?'#edf2f7':isSel?'#3182ce':'#fff'};color:${isUsed?'#a0aec0':isSel?'#fff':'#2d3748'};opacity:${isUsed?'0.5':'1'}">${fl}</button>`;
+  }).join('');
+  document.getElementById('floor-add-confirm').style.display=_eFloorAddSelected.size?'':'none';
+}
+function toggleEFloorAddSel(fl){
+  if(_eFloorAddSelected.has(fl))_eFloorAddSelected.delete(fl);else _eFloorAddSelected.add(fl);
+  renderEFloorAddGrid();
+}
+// Override floorAddAllFloors and floorAddConfirmMulti for entry mode
+const _origFloorAddAllFloors=floorAddAllFloors;
+floorAddAllFloors=function(){
+  if(_floorAddMode==='entry'){
+    const e=findE(_eFloorAddEid);if(!e)return;
+    const all=getFloorRange();
+    const used=new Set(e.floors.map(f=>f.floor).filter(Boolean));
+    const toAdd=all.filter(fl=>!used.has(fl));
+    if(!toAdd.length){toast('追加できるフロアがありません','err');return;}
+    const src=e.floors.length?e.floors[e.floors.length-1]:null;
+    toAdd.forEach(fl=>{
+      const newRows=src?src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];
+      const newAltGs=src&&src.altGroups?src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[];
+      e.floors.push({id:nextFid++,floor:fl,rows:newRows,memo:'',altGroups:newAltGs});
+    });
+    document.getElementById('floor-add-modal').style.display='none';
+    renderEF(_eFloorAddEid);renderEntries();toast(toAdd.length+'フロア追加しました','ok');
+  } else {_origFloorAddAllFloors();}
+};
+const _origFloorAddConfirmMulti=floorAddConfirmMulti;
+floorAddConfirmMulti=function(){
+  if(_floorAddMode==='entry'){
+    if(!_eFloorAddSelected.size)return;
+    const e=findE(_eFloorAddEid);if(!e)return;
+    const src=e.floors.length?e.floors[e.floors.length-1]:null;
+    _eFloorAddSelected.forEach(fl=>{
+      const newRows=src?src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:'',ct:''}];
+      const newAltGs=src&&src.altGroups?src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[];
+      e.floors.push({id:nextFid++,floor:fl,rows:newRows,memo:'',altGroups:newAltGs});
+    });
+    document.getElementById('floor-add-modal').style.display='none';
+    renderEF(_eFloorAddEid);renderEntries();toast(_eFloorAddSelected.size+'フロア追加しました','ok');
+  } else {_origFloorAddConfirmMulti();}
+};
+const _origFloorAddBackToStep1=floorAddBackToStep1;
+floorAddBackToStep1=function(){_origFloorAddBackToStep1();};
+// Also update showFloorAddPopup to set mode
+const _origShowFloorAddPopup=showFloorAddPopup;
+showFloorAddPopup=function(fid){_floorAddMode='form';_origShowFloorAddPopup(fid);};
 function eDelFloor(eid,fid){const e=findE(eid);if(e)e.floors=e.floors.filter(f=>f.id!==fid);renderEF(eid);}
 function delEntry(id){
   entries=entries.filter(e=>e.id!==id);
@@ -2809,7 +2903,7 @@ function renderEntryCard(item){
     <div class="ec-body" id="ecbody-${e.id}" style="display:none">
       <div id="efl-${e.id}"></div>
       <div class="ec-footer">
-        <button class="btn btn-sm btn-blue" onclick="eAddFloor(${e.id})">＋ フロアを追加</button>
+        <button class="btn btn-sm btn-blue" onclick="showEFloorAddPopup(${e.id})">＋ フロアを追加</button>
         <button class="btn btn-sm btn-orange" onclick="copyEntry(${e.id})">📋 この仕様をコピーして新規追加</button>
       </div>
     </div>
