@@ -52,8 +52,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 .dim-blk{display:none;margin-top:8px}
 .dim-blk.show{display:block}
 .fl-block{background:#f7fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:8px}
-.fl-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.fl-head select{flex:1}
+.fl-head{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.fl-head select{flex:1;padding:6px 8px;font-size:13px}
 .mode-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .mode-row select{flex:none;width:130px;min-width:0;font-size:13px}
 .cnt-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
@@ -1905,10 +1905,11 @@ function showFloorRequired(){
 function initFlTo(){
   const from=gv('fl-from');
   const toSel=document.getElementById('fl-to');
+  const curTo=toSel.value;
   toSel.innerHTML='<option value="">最上階</option>';
   const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
   const fi=from?all.indexOf(from):0;
-  all.slice(Math.max(fi,0)).forEach(f=>toSel.innerHTML+=`<option>${f}</option>`);
+  all.slice(Math.max(fi,0)).forEach(f=>toSel.innerHTML+=`<option${f===curTo?' selected':''}>${f}</option>`);
   saveLS();
 }
 function addFF(){
@@ -2156,7 +2157,9 @@ function getFloorRange(){
   const from=gv('fl-from'),to=gv('fl-to');
   const fi=from?all.indexOf(from):0;
   const ti=to?all.indexOf(to):all.length-1;
-  return all.slice(Math.max(fi,0),ti>=fi?ti+1:all.length);
+  const range=all.slice(Math.max(fi,0),ti>=fi?ti+1:all.length);
+  if(!range.includes('屋上'))range.push('屋上');
+  return range;
 }
 function toggleFloorAddSel(fl){
   if(_floorAddSelected.has(fl))_floorAddSelected.delete(fl);else _floorAddSelected.add(fl);
@@ -2205,13 +2208,36 @@ function faFlFromChg(){
   toSel.innerHTML='<option value="">最上階</option>'+all.slice(Math.max(fi,0)).map(f=>`<option>${f}</option>`).join('');
 }
 function faApplyRange(){
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
   const from=document.getElementById('fa-fl-from').value;
   const to=document.getElementById('fa-fl-to').value;
+  const fi=from?all.indexOf(from):0;
+  const ti=to?all.indexOf(to):all.length-1;
+  const newRange=all.slice(Math.max(fi,0),ti>=fi?ti+1:all.length);
+  // 既存の登録済み器具にこの範囲外のフロアがあるか確認
+  const usedFloorsInEntries=new Set();
+  entries.forEach(e=>{e.floors.forEach(fl=>{if(fl.floor)usedFloorsInEntries.add(fl.floor);});});
+  // 現在のフォームフロアも確認
+  fFloors.forEach(f=>{if(f.floor)usedFloorsInEntries.add(f.floor);});
+  const outOfRange=[...usedFloorsInEntries].filter(fl=>!newRange.includes(fl));
+  if(outOfRange.length){
+    toast('既に台数が追加された階層（'+outOfRange.join('、')+'）が含まれているため更新する階層を確認してください','err');
+    return;
+  }
   document.getElementById('fl-from').value=from;
   document.getElementById('fl-to').value=to||'';
   initFlTo();
+  // 更新した範囲の未追加フロアを即追加
+  const currentUsed=new Set(fFloors.map(f=>f.floor).filter(Boolean));
+  const src=fFloors.length?fFloors[fFloors.length-1]:null;
+  const toAdd=newRange.filter(fl=>!currentUsed.has(fl));
+  toAdd.forEach(fl=>{
+    fFloors.push({id:nextFid++,floor:fl,rows:_makeFloorRows(src,_floorAddCopyMode),memo:'',altGroups:_makeFloorAltGroups(src,_floorAddCopyMode)});
+  });
   document.getElementById('floor-add-modal').style.display='none';
-  toast('建物階数範囲を更新しました','ok');
+  renderFF();
+  if(toAdd.length)toast('階数範囲を更新し、'+toAdd.length+'フロア追加しました','ok');
+  else toast('階数範囲を更新しました','ok');
 }
 function fCopyFloor(fid){
   if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
@@ -2274,7 +2300,7 @@ function renderFF(){
             <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="fCC(${f.id},${row.id},this.value)" style="width:48px;text-align:center">
             <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${f.id},${row.id},String(v));})()">＋</button>
           </div>
-          <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
+          <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
         </div>
         <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)}台</div>
         <input type="text" value="${f.memo}" placeholder="備考・特記"
@@ -2288,7 +2314,7 @@ function renderFF(){
         <select onchange="fFloorChg(${f.id},this.value)">
           ${flOpts(f.floor,allUsedF)}
         </select>
-        <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})">削除</button>
+        <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
       </div>
       ${altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】 ${getLamp()||'(種別未入力)'}</div>`:''}
       ${renderFloorRows(f.rows,f.id,null,!isGuide)}
@@ -2717,7 +2743,7 @@ function renderEF(eid){
             <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="eCC(${eid},${f.id},${row.id},this.value)" style="width:48px;text-align:center">
             <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">＋</button>
           </div>
-          <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
+          <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
         </div>
         <input type="text" value="${f.memo}" placeholder="備考・特記"
           style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
@@ -2729,7 +2755,7 @@ function renderEF(eid){
         <select onchange="eFlChg(${eid},${f.id},this.value)">
           ${flOpts(f.floor,allUsedE)}
         </select>
-        <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})">フロア削除</button>
+        <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
       </div>
       ${e.fix.altLamps&&e.fix.altLamps.length?`<div style="font-size:11px;font-weight:700;color:#276749;margin:2px 0 4px;padding:2px 6px;background:#c6f6d5;border-radius:4px">【メインランプ】</div>`:''}
       ${renderFloorRows(f.rows,f.id,eid,!isEGuide)}
