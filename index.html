@@ -1938,7 +1938,7 @@ function applyAllSame(checked){
   if(!checked)return;
   if(!fFloors.length)return;
   if(!confirm('階数以外が自動で全て同じ項目になり戻せませんが本当によろしいですか?')){
-    document.getElementById('all-same-chk').checked=false;
+  
     return;
   }
   const baseRows=fFloors[0].rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
@@ -2373,7 +2373,7 @@ function editEntry(eid){
     document.getElementById('sec').value=e.section;
     const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='none';
     const ss=document.getElementById('sec-sub');if(ss)ss.style.display='';
-    document.getElementById('all-same-chk').checked=false;
+  
   } else {
     document.getElementById('sec').value='自由入力';
     const ot=document.getElementById('sec-other-row');if(ot)ot.style.display='block';
@@ -2526,7 +2526,7 @@ function copyEntry(eid){
   document.getElementById('sec').value='';
   const _ot=document.getElementById('sec-other-row');if(_ot)_ot.style.display='none';
   const _ss=document.getElementById('sec-sub');if(_ss)_ss.style.display='';
-  document.getElementById('all-same-chk').checked=false;
+
   fFloors=[];renderFF();
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});
   toast('器具仕様をコピーしました。場所・フロアを入力して登録してください','ok');
@@ -2582,7 +2582,6 @@ function renderEF(eid){
       <input type="text" value="${f.memo}" placeholder="備考・特記"
         style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
         oninput="eMemoChg(${eid},${f.id},this.value)">
-      <button class="btn btn-sm" style="width:100%;margin-top:8px;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:8px;font-size:12px;padding:6px 10px;touch-action:manipulation" onclick="eCopyFloor(${eid},${f.id})">📋 このフロア情報をコピーして追加</button>
     </div>`;
   }).join('');
 }
