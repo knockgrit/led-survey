@@ -2291,16 +2291,19 @@ function renderFF(){
     if(isEonly||isGuide){
       const cntId=`cnt-${row.id}`;
       return`<div class="fl-block">
-        <div class="fl-head">
-          <select onchange="fFloorChg(${f.id},this.value)">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <select onchange="fFloorChg(${f.id},this.value)" style="flex:1;padding:6px 8px;font-size:13px">
             ${flOpts(f.floor,allUsedF)}
           </select>
-          <div class="cnt-wrap">
+          <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;color:#718096;flex-shrink:0">台数</span>
+          <div class="cnt-wrap" style="flex:1">
             <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;fCC(${f.id},${row.id},String(v));})()">－</button>
             <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="fCC(${f.id},${row.id},this.value)" style="width:48px;text-align:center">
             <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;fCC(${f.id},${row.id},String(v));})()">＋</button>
           </div>
-          <button class="btn btn-xs btn-red" onclick="fRFloor(${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
         </div>
         <div class="fl-total" id="ftot-${f.id}">合計：${calcTot(f.rows)}台</div>
         <input type="text" value="${f.memo}" placeholder="備考・特記"
@@ -2734,16 +2737,19 @@ function renderEF(eid){
     if(isEonly||isEGuide){
       const cntId=`cnt-${row.id}`;
       return`<div class="efl-block">
-        <div class="efl-head">
-          <select onchange="eFlChg(${eid},${f.id},this.value)">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <select onchange="eFlChg(${eid},${f.id},this.value)" style="flex:1;padding:6px 8px;font-size:13px">
             ${flOpts(f.floor,allUsedE)}
           </select>
-          <div class="cnt-wrap">
+          <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px;color:#718096;flex-shrink:0">台数</span>
+          <div class="cnt-wrap" style="flex:1">
             <button class="cnt-btn minus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)-1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">－</button>
             <input type="number" id="${cntId}" min="0" value="${row.count}" placeholder="0" oninput="eCC(${eid},${f.id},${row.id},this.value)" style="width:48px;text-align:center">
             <button class="cnt-btn plus" onclick="(()=>{const el=document.getElementById('${cntId}');const v=Math.max(0,(parseInt(el.value)||0)+1);el.value=v;eCC(${eid},${f.id},${row.id},String(v));})()">＋</button>
           </div>
-          <button class="btn btn-xs btn-red" onclick="eDelFloor(${eid},${f.id})" style="line-height:1.2;padding:4px 6px;font-size:10px">フロア<br>削除</button>
         </div>
         <input type="text" value="${f.memo}" placeholder="備考・特記"
           style="width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;background:#fff"
