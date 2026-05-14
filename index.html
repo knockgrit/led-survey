@@ -383,7 +383,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
     <div class="field">
       <label>型番</label>
       <input type="text" id="led-model" placeholder="例：LGW80190LE1">
-      <div style="font-size:11px;color:#e53e3e;margin-top:3px;padding-left:4px">※型番がない場合は見た目が判断できる名称を入力</div>
+      <div style="font-size:11px;color:#718096;margin-top:3px;padding-left:4px">※型番がわかる場合は入力（任意）</div>
     </div>
     <div class="field">
       <label>タイプ</label>
@@ -721,16 +721,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 <!-- ヘルプモーダル -->
 <div id="floor-add-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:12px;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;border-radius:16px 16px 0 0;max-width:500px;width:100%;padding:20px 16px;box-shadow:0 -4px 20px rgba(0,0,0,0.2);max-height:80vh;overflow-y:auto">
-    <div style="font-size:16px;font-weight:700;color:#2d3748;margin-bottom:14px;text-align:center">フロアを追加</div>
+    <div style="font-size:16px;font-weight:700;color:#2d3748;margin-bottom:14px;text-align:center" id="floor-add-title">フロアを追加</div>
     <div id="floor-add-step1">
+      <button onclick="floorAddAction('new1')" style="width:100%;padding:14px;margin-bottom:8px;background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation">
+        ① 新規でワンフロア追加
+      </button>
+      <button onclick="floorAddAction('newMulti')" style="width:100%;padding:14px;margin-bottom:8px;background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation">
+        ② 新規で複数フロア追加
+      </button>
       <button onclick="floorAddAction('copy1')" style="width:100%;padding:14px;margin-bottom:8px;background:#e9f5ef;color:#276749;border:1.5px solid #c6f6d5;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation">
-        ① コピーしてワンフロア追加<br><span style="font-size:11px;font-weight:400;color:#718096">※このフロアの情報（数・色温度・点灯方式）と同じ内容で追加</span>
+        ③ コピーしてワンフロア追加<br><span style="font-size:11px;font-weight:400;color:#718096">※このフロアの情報（数・色温度・点灯方式）と同じ内容で追加</span>
       </button>
       <button onclick="floorAddAction('copyMulti')" style="width:100%;padding:14px;margin-bottom:8px;background:#ebf8ff;color:#2b6cb0;border:1.5px solid #bee3f8;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation">
-        ② コピーして複数フロア追加<br><span style="font-size:11px;font-weight:400;color:#718096">※このフロアの情報（数・色温度・点灯方式）と同じ内容を複数追加</span>
-      </button>
-      <button onclick="floorAddAction('new')" style="width:100%;padding:14px;margin-bottom:8px;background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation">
-        ③ 新規追加
+        ④ コピーして複数フロア追加<br><span style="font-size:11px;font-weight:400;color:#718096">※このフロアの情報（数・色温度・点灯方式）と同じ内容を複数追加</span>
       </button>
       <button onclick="document.getElementById('floor-add-modal').style.display='none'" style="width:100%;padding:10px;background:none;color:#718096;border:none;font-size:13px;cursor:pointer;touch-action:manipulation">キャンセル</button>
     </div>
@@ -744,6 +747,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
       <div id="floor-add-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px"></div>
       <button onclick="floorAddConfirmMulti()" id="floor-add-confirm" style="width:100%;padding:12px;background:#38a169;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;display:none">選択したフロアを追加</button>
       <button onclick="floorAddBackToStep1()" style="width:100%;padding:10px;background:none;color:#718096;border:none;font-size:13px;cursor:pointer;margin-top:4px;touch-action:manipulation">← 戻る</button>
+    </div>
+    <div id="floor-add-full" style="display:none">
+      <div style="font-size:13px;color:#e53e3e;line-height:1.7;margin-bottom:12px;text-align:center">既に全フロア追加済みです。<br>登録階以外の階がある場合は階数範囲を編集してください。</div>
+      <div style="font-size:13px;font-weight:700;color:#2d3748;margin-bottom:6px">建物階数範囲を編集</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <select id="fa-fl-from" style="flex:1;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px" onchange="faFlFromChg()"></select>
+        <span>〜</span>
+        <select id="fa-fl-to" style="flex:1;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px"></select>
+      </div>
+      <button onclick="faApplyRange()" style="width:100%;padding:12px;background:#38a169;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">階数範囲を更新</button>
+      <button onclick="document.getElementById('floor-add-modal').style.display='none'" style="width:100%;padding:10px;background:none;color:#718096;border:none;font-size:13px;cursor:pointer;margin-top:4px;touch-action:manipulation">キャンセル</button>
     </div>
   </div>
 </div>
@@ -1190,15 +1204,21 @@ function updateNormalLedFields(){
   const isGuide=fixTypeSt==='guide';
   const isLed=ledSt==='led';
   const isLled=ledSt==='lled';
-  // 照明名称：eonly/guideのみ非表示（LED器具でも表示する）
+  // 照明名称：eonly/guideは非表示、LED器具時はled-detailの先頭に移動
   const ff=document.getElementById('fname-field');
-  if(ff)ff.style.display=(isEonly||isGuide)?'none':'block';
-  // ランプ種別・消費電力：LED器具選択時は非表示（normal/ecomb時のみ関係）
+  const ledDet=document.getElementById('led-detail');
+  const normalFields=document.getElementById('normal-fields');
+  if(ff){
+    if(isEonly||isGuide){ff.style.display='none';}
+    else if(isLed&&ledDet){ff.style.display='block';ledDet.insertBefore(ff,ledDet.firstChild);}
+    else{ff.style.display='block';if(normalFields&&!normalFields.contains(ff))normalFields.insertBefore(ff,normalFields.firstChild);}
+  }
+  // ランプ種別・消費電力：LED器具選択時は非表示
   const lf=document.getElementById('normal-lamp-field');if(lf)lf.style.display=isLed?'none':'';
   const lcf=document.getElementById('normal-lamp-count-field');if(lcf)lcf.style.display=isLed?'none':'';
   const wf2=document.getElementById('normal-watt-field');if(wf2)wf2.style.display=isLed?'none':'';
-  // 器具寸法：LED器具でも表示する
-  const dimF=document.getElementById('normal-dim-field');if(dimF)dimF.style.display='';
+  // 器具寸法：LED器具時は非表示
+  const dimF=document.getElementById('normal-dim-field');if(dimF)dimF.style.display=isLed?'none':'';
   // ランプ種別ラベル：旧器具にLEDランプ使用選択時は「ランプ型番」に変更
   const lampLbl=document.getElementById('lamp-label');
   if(lampLbl)lampLbl.firstChild.textContent=isLled?'ランプ型番':'ランプ種別';
@@ -2080,21 +2100,35 @@ function updateECardWarns(eid){
 // フロアコピー（階数以外をコピーして下に追加）
 let _floorAddSrcFid=null;
 const _floorAddSelected=new Set();
+let _floorAddCopyMode=false;
 function showFloorAddPopup(fid){
   _floorAddSrcFid=fid;
-  _floorAddSelected.clear();
-  document.getElementById('floor-add-step1').style.display='';
+  _floorAddSelected.clear();_floorAddCopyMode=false;
+  // 全フロア追加済みかチェック
+  const allFl=getFloorRange();
+  const usedFl=new Set(fFloors.map(f=>f.floor).filter(Boolean));
+  const remaining=allFl.filter(fl=>!usedFl.has(fl));
+  document.getElementById('floor-add-step1').style.display=remaining.length?'':'none';
   document.getElementById('floor-add-step2').style.display='none';
+  document.getElementById('floor-add-full').style.display=remaining.length?'none':'';
+  if(!remaining.length)initFaRange();
   document.getElementById('floor-add-modal').style.display='flex';
 }
 function floorAddAction(type){
-  if(type==='copy1'){
-    document.getElementById('floor-add-modal').style.display='none';
-    fCopyFloor(_floorAddSrcFid);
-  } else if(type==='new'){
+  if(type==='new1'){
     document.getElementById('floor-add-modal').style.display='none';
     addOneFFAfter(_floorAddSrcFid);
+  } else if(type==='newMulti'){
+    _floorAddCopyMode=false;
+    document.getElementById('floor-add-step1').style.display='none';
+    document.getElementById('floor-add-step2').style.display='';
+    _floorAddSelected.clear();
+    renderFloorAddGrid();
+  } else if(type==='copy1'){
+    document.getElementById('floor-add-modal').style.display='none';
+    fCopyFloor(_floorAddSrcFid);
   } else if(type==='copyMulti'){
+    _floorAddCopyMode=true;
     document.getElementById('floor-add-step1').style.display='none';
     document.getElementById('floor-add-step2').style.display='';
     _floorAddSelected.clear();
@@ -2128,30 +2162,56 @@ function toggleFloorAddSel(fl){
   if(_floorAddSelected.has(fl))_floorAddSelected.delete(fl);else _floorAddSelected.add(fl);
   renderFloorAddGrid();
 }
+function _makeFloorRows(src,isCopy){
+  if(isCopy&&src)return src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}));
+  return [{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
+}
+function _makeFloorAltGroups(src,isCopy){
+  if(isCopy&&src&&src.altGroups)return src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))}));
+  return [];
+}
 function floorAddAllFloors(){
   const all=getFloorRange();
   const used=new Set(fFloors.map(f=>f.floor).filter(Boolean));
   const toAdd=all.filter(fl=>!used.has(fl));
   if(!toAdd.length){toast('追加できるフロアがありません','err');return;}
   const src=fFloors.find(f=>f.id===_floorAddSrcFid);
-  toAdd.forEach(fl=>{
-    const newRows=src?src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
-    const cpFl={id:nextFid++,floor:fl,rows:newRows,memo:'',altGroups:src&&src.altGroups?src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[]};
-    fFloors.push(cpFl);
-  });
+  toAdd.forEach(fl=>{fFloors.push({id:nextFid++,floor:fl,rows:_makeFloorRows(src,_floorAddCopyMode),memo:'',altGroups:_makeFloorAltGroups(src,_floorAddCopyMode)});});
   document.getElementById('floor-add-modal').style.display='none';
   renderFF();toast(toAdd.length+'フロア追加しました','ok');
 }
 function floorAddConfirmMulti(){
   if(!_floorAddSelected.size)return;
   const src=fFloors.find(f=>f.id===_floorAddSrcFid);
-  _floorAddSelected.forEach(fl=>{
-    const newRows=src?src.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''})):[{id:nextMid++,mode:'',count:'',timer:defTimer(),ct:''}];
-    const cpFl={id:nextFid++,floor:fl,rows:newRows,memo:'',altGroups:src&&src.altGroups?src.altGroups.map(g=>({altId:g.altId,rows:g.rows.map(r=>({id:nextMid++,mode:r.mode,count:r.count,timer:r.timer,ct:r.ct||''}))})):[]};
-    fFloors.push(cpFl);
-  });
+  _floorAddSelected.forEach(fl=>{fFloors.push({id:nextFid++,floor:fl,rows:_makeFloorRows(src,_floorAddCopyMode),memo:'',altGroups:_makeFloorAltGroups(src,_floorAddCopyMode)});});
   document.getElementById('floor-add-modal').style.display='none';
   renderFF();toast(_floorAddSelected.size+'フロア追加しました','ok');
+}
+// 階数範囲編集（全フロア追加済み時）
+function initFaRange(){
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  const curFrom=gv('fl-from'),curTo=gv('fl-to');
+  const fromSel=document.getElementById('fa-fl-from');
+  const toSel=document.getElementById('fa-fl-to');
+  fromSel.innerHTML=all.map(f=>`<option${f===curFrom?' selected':''}>${f}</option>`).join('');
+  const fi=curFrom?all.indexOf(curFrom):0;
+  toSel.innerHTML='<option value="">最上階</option>'+all.slice(Math.max(fi,0)).map(f=>`<option${f===curTo?' selected':''}>${f}</option>`).join('');
+}
+function faFlFromChg(){
+  const all=['B3','B2','B1','1F','2F','3F','4F','5F','6F','7F','8F','9F','10F','11F','12F','13F','14F','15F','16F','17F','18F','19F','20F','屋上'];
+  const from=document.getElementById('fa-fl-from').value;
+  const fi=from?all.indexOf(from):0;
+  const toSel=document.getElementById('fa-fl-to');
+  toSel.innerHTML='<option value="">最上階</option>'+all.slice(Math.max(fi,0)).map(f=>`<option>${f}</option>`).join('');
+}
+function faApplyRange(){
+  const from=document.getElementById('fa-fl-from').value;
+  const to=document.getElementById('fa-fl-to').value;
+  document.getElementById('fl-from').value=from;
+  document.getElementById('fl-to').value=to||'';
+  initFlTo();
+  document.getElementById('floor-add-modal').style.display='none';
+  toast('建物階数範囲を更新しました','ok');
 }
 function fCopyFloor(fid){
   if(!gv('fl-from')){alert('「建物情報」の建物階数範囲を先に入力してください');return;}
@@ -2503,11 +2563,16 @@ function eAddFloor(eid){const e=findE(eid);if(e){const lastF=e.floors.length?e.f
 let _eFloorAddEid=null;
 const _eFloorAddSelected=new Set();
 function showEFloorAddPopup(eid){
-  _eFloorAddEid=eid;_eFloorAddSelected.clear();
-  document.getElementById('floor-add-step1').style.display='';
-  document.getElementById('floor-add-step2').style.display='none';
-  // Override actions for entry mode
+  _eFloorAddEid=eid;_eFloorAddSelected.clear();_floorAddCopyMode=false;
   _floorAddSrcFid=null;_floorAddMode='entry';
+  const e=findE(eid);
+  const allFl=getFloorRange();
+  const usedFl=new Set(e?e.floors.map(f=>f.floor).filter(Boolean):[]);
+  const remaining=allFl.filter(fl=>!usedFl.has(fl));
+  document.getElementById('floor-add-step1').style.display=remaining.length?'':'none';
+  document.getElementById('floor-add-step2').style.display='none';
+  document.getElementById('floor-add-full').style.display=remaining.length?'none':'';
+  if(!remaining.length)initFaRange();
   document.getElementById('floor-add-modal').style.display='flex';
 }
 // Reuse the same modal but branch by mode
@@ -2517,17 +2582,22 @@ const _origFloorAddAction=floorAddAction;
 floorAddAction=function(type){
   if(_floorAddMode==='entry'){
     const e=findE(_eFloorAddEid);if(!e)return;
-    if(type==='copy1'){
-      document.getElementById('floor-add-modal').style.display='none';
-      eCopyFloor2(_eFloorAddEid);
-    } else if(type==='new'){
+    if(type==='new1'){
       document.getElementById('floor-add-modal').style.display='none';
       eAddFloor(_eFloorAddEid);
-    } else if(type==='copyMulti'){
+    } else if(type==='newMulti'){
+      _floorAddCopyMode=false;
       document.getElementById('floor-add-step1').style.display='none';
       document.getElementById('floor-add-step2').style.display='';
-      _eFloorAddSelected.clear();
-      renderEFloorAddGrid();
+      _eFloorAddSelected.clear();renderEFloorAddGrid();
+    } else if(type==='copy1'){
+      document.getElementById('floor-add-modal').style.display='none';
+      eCopyFloor2(_eFloorAddEid);
+    } else if(type==='copyMulti'){
+      _floorAddCopyMode=true;
+      document.getElementById('floor-add-step1').style.display='none';
+      document.getElementById('floor-add-step2').style.display='';
+      _eFloorAddSelected.clear();renderEFloorAddGrid();
     }
   } else {
     _origFloorAddAction(type);
