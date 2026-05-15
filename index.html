@@ -210,7 +210,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
 <!-- 器具フォーム -->
 <div class="card" id="form-card">
   <div class="editing-banner" id="editing-banner">✏️ 仕様変更中：変更後に「仕様変更を完了する」を押してください</div>
-  <div class="card-title" id="form-card-title">➕ 器具を追加</div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div class="card-title" id="form-card-title" style="margin:0">➕ 器具を追加</div>
+    <button onclick="resetFormOnly()" style="padding:4px 10px;background:#fed7d7;color:#c53030;border:1px solid #fc8181;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">入力中の情報リセット</button>
+  </div>
 
   <div id="lib-sec" style="display:none">
     <button id="lib-toggle-btn" onclick="toggleLib()" style="width:100%;text-align:left;background:#ebf8ff;border:1.5px solid #bee3f8;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#2b6cb0;cursor:pointer;margin-bottom:6px;touch-action:manipulation;display:block">▶ 登録済みの器具情報をコピーして器具を追加</button>
@@ -2487,6 +2490,12 @@ function editEntry(eid){
   toast('仕様変更モード（No.'+eid+'）：変更後に「仕様変更を完了する」を押してください','ok');
 }
 
+function resetFormOnly(){
+  if(!confirm('入力中の器具情報をリセットしてよろしいですか？\n（登録済みの器具には影響しません）'))return;
+  clearForm();
+  fFloors=[];renderFF();
+  toast('入力中の情報をリセットしました','ok');
+}
 function clearForm(){
   ['watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo','fname-sub-other','fname-sensor-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
   fnameSubSt='';fnameSensorSt='';fnameCircuitSt='';fnameFootSt='';poleInstallSt='';
@@ -2708,6 +2717,7 @@ function delEntry(id){
 }
 function resetAll(){
   if(!confirm('全ての情報をリセットしますか？\n登録済み器具・選択履歴を含む全てのデータが削除されます。'))return;
+  if(!confirm('本当にリセットしてよろしいですか？\nこの操作は取り消せません。'))return;
   localStorage.removeItem('ledsurvey_v1');
   location.reload();
 }
