@@ -3311,8 +3311,8 @@ async function doEmailSend(){
         txt+=`  📍${fl.floor}：合計${tot}台`;
       } else {
         const _mg={};
-        fl.rows.filter(r=>r.mode).forEach(r=>{
-          const lbl=convMode(r.mode,r.timer);
+        fl.rows.forEach(r=>{
+          const lbl=r.mode?convMode(r.mode,r.timer):'未選択';
           if(!_mg[lbl])_mg[lbl]=[];
           _mg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});
         });
@@ -3320,7 +3320,7 @@ async function doEmailSend(){
         const _altTotFl=fl.altGroups?fl.altGroups.reduce((s,g)=>s+calcTot(g.rows),0):0;
         txt+=`  📍${fl.floor}：合計${tot+_altTotFl}台`;
         const hasAlts=ent.fix.altLamps&&ent.fix.altLamps.length&&fl.altGroups&&fl.altGroups.length;
-        if(hasAlts){if(ms)txt+=`\n    →メイン：${ms}`;fl.altGroups.forEach((ag,agi)=>{const aInfo=ent.fix.altLamps.find(a=>a.id===ag.altId);const altIdx=aInfo?ent.fix.altLamps.indexOf(aInfo)+1:agi+1;const _amg={};ag.rows.filter(r=>r.mode).forEach(r=>{const lbl=convMode(r.mode,r.timer);if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →追加${altIdx}：${ams}`;});}else{if(ms)txt+=`→${ms}`;}
+        if(hasAlts){if(ms)txt+=`\n    →メイン：${ms}`;fl.altGroups.forEach((ag,agi)=>{const aInfo=ent.fix.altLamps.find(a=>a.id===ag.altId);const altIdx=aInfo?ent.fix.altLamps.indexOf(aInfo)+1:agi+1;const _amg={};ag.rows.forEach(r=>{const lbl=r.mode?convMode(r.mode,r.timer):'未選択';if(!_amg[lbl])_amg[lbl]=[];_amg[lbl].push({ct:shortCt(r.ct)||'不明',count:r.count||'0'});});const ams=Object.entries(_amg).map(([lbl,rows])=>'['+lbl+']'+rows.map(r=>r.ct+r.count).join(':')).join('／');if(ams)txt+=`\n    →追加${altIdx}：${ams}`;});}else{if(ms)txt+=`→${ms}`;}
       }
       if(fl.memo)txt+=`　※${fl.memo}`;
       txt+='\n';
