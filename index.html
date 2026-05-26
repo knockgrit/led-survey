@@ -212,7 +212,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#4299e1;backgr
   <div class="editing-banner" id="editing-banner">✏️ 仕様変更中：変更後に「仕様変更を完了する」を押してください</div>
   <div style="display:flex;align-items:center;justify-content:space-between">
     <div class="card-title" id="form-card-title" style="margin:0">➕ 器具を追加</div>
-    <button onclick="resetFormOnly()" style="padding:4px 10px;background:#fed7d7;color:#c53030;border:1px solid #fc8181;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">入力中の情報リセット</button>
+    <button id="reset-form-btn" onclick="resetFormOnly()" style="padding:4px 10px;background:#fed7d7;color:#c53030;border:1px solid #fc8181;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">入力中の情報リセット</button>
+    <button id="cancel-edit-btn" onclick="cancelEdit()" style="display:none;padding:4px 10px;background:#fefcbf;color:#975a16;border:1px solid #ecc94b;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">仕様を編集をキャンセル</button>
   </div>
 
   <div id="lib-sec" style="display:none">
@@ -2419,7 +2420,7 @@ function regEntry(){
   sortByFloor(fFloors);
   const wasEditing=editingId!==null;
   const eid2=wasEditing?editingId:nextId++;
-  if(wasEditing){editingId=null;_editBackup=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');const _fis2=document.getElementById('floor-input-section');if(_fis2)_fis2.style.display='';}
+  if(wasEditing){editingId=null;_editBackup=null;const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');const _fis2=document.getElementById('floor-input-section');if(_fis2)_fis2.style.display='';const _rb2=document.getElementById('reset-form-btn');if(_rb2)_rb2.style.display='';const _cb2=document.getElementById('cancel-edit-btn');if(_cb2)_cb2.style.display='none';}
   let copiedFrom=null;
   if(_copySrcId&&_copySrcFix&&!wasEditing){
     const sf=_copySrcFix;
@@ -2483,6 +2484,9 @@ function editEntry(eid){
   document.getElementById('send-btn').disabled=!entries.length;
   const fc=document.getElementById('form-card');if(fc)fc.classList.add('editing-card');
   const eb=document.getElementById('editing-banner');if(eb)eb.classList.add('show');
+  // ボタン切替：リセット→キャンセル
+  const rb=document.getElementById('reset-form-btn');if(rb)rb.style.display='none';
+  const cb=document.getElementById('cancel-edit-btn');if(cb)cb.style.display='';
   updateRegBtn();
   const _ls=document.getElementById('lib-sec');if(_ls)_ls.style.display='none';
   const _fis=document.getElementById('floor-input-section');if(_fis)_fis.style.display='none';
@@ -2495,6 +2499,31 @@ function resetFormOnly(){
   clearForm();
   fFloors=[];renderFF();
   toast('入力中の情報をリセットしました','ok');
+}
+function cancelEdit(){
+  if(!editingId){return;}
+  if(!confirm('編集内容を破棄して元に戻しますか？'))return;
+  // バックアップから登録済みエントリーを復元
+  if(_editBackup){
+    entries.push(_editBackup);
+    entries.sort((a,b)=>a.id-b.id);
+    _editBackup=null;
+  }
+  editingId=null;
+  const fc=document.getElementById('form-card');if(fc)fc.classList.remove('editing-card');
+  const eb=document.getElementById('editing-banner');if(eb)eb.classList.remove('show');
+  const _fis=document.getElementById('floor-input-section');if(_fis)_fis.style.display='';
+  // ボタン表示切替
+  const rb=document.getElementById('reset-form-btn');if(rb)rb.style.display='';
+  const cb=document.getElementById('cancel-edit-btn');if(cb)cb.style.display='none';
+  // フォームクリア（editingId既にnullなのでclearFormは安全）
+  clearForm();
+  fFloors=[];renderFF();
+  renderEntries();
+  document.getElementById('send-btn').disabled=!entries.length;
+  updateRegBtn();
+  save();
+  toast('仕様の編集をキャンセルしました','ok');
 }
 function clearForm(){
   ['watt','sec','sec-sub','sec-main','sec-sub-other','dphi-out','dphi-in','dside','dside-max','dh','dw','drect-max-h','drect-max-w','dfree','dim-note','dpole-d','dpole-h','dpole-pd','rain-cmt-v','high-h-v','high-cmt-v','parking-no','fix-memo','fname-sub-other','fname-sensor-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})
@@ -2511,6 +2540,8 @@ function clearForm(){
   const _fc=document.getElementById('form-card');if(_fc)_fc.classList.remove('editing-card');
   const _eb=document.getElementById('editing-banner');if(_eb)_eb.classList.remove('show');
   const _fis3=document.getElementById('floor-input-section');if(_fis3)_fis3.style.display='';
+  const _rb3=document.getElementById('reset-form-btn');if(_rb3)_rb3.style.display='';
+  const _cb3=document.getElementById('cancel-edit-btn');if(_cb3)_cb3.style.display='none';
   document.getElementById('parking-field').style.display='none';
   const otherRow=document.getElementById('sec-other-row');if(otherRow)otherRow.style.display='none';
   const secSubEl=document.getElementById('sec-sub');if(secSubEl)secSubEl.style.display='';
